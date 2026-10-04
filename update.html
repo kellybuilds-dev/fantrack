@@ -180,6 +180,8 @@
     <main>
         <a class="back-link" href="index.html">← Back to dashboard</a>
 
+        <p id="updateLoading" role="status" aria-live="polite">Loading update...</p>
+
         <article class="update-card" id="updateDetail" aria-labelledby="updateTitle" hidden>
             <p class="update-eyebrow" id="updateCategory"></p>
             <h1 id="updateTitle"></h1>
@@ -201,10 +203,17 @@
                 <a class="secondary" id="notFoundArtistLink" hidden>View artist profile</a>
             </nav>
         </section>
+
+        <section class="not-found" id="updateUnavailable" aria-labelledby="unavailableTitle" role="alert" hidden>
+            <h1 id="unavailableTitle">Unable to load update</h1>
+            <p>The FANTRACK API is unavailable or returned an unexpected response. Please try again later.</p>
+            <nav class="detail-actions" aria-label="Service unavailable navigation">
+                <a href="index.html">Back to dashboard</a>
+            </nav>
+        </section>
     </main>
 
     <script src="fantrack-state.js"></script>
-    <script src="fantrack-updates.js"></script>
     <script>
         const params = new URLSearchParams(window.location.search);
         const artistId = params.get("artist");
@@ -212,39 +221,85 @@
         const title = params.get("title");
         const updateDetail = document.getElementById("updateDetail");
         const updateNotFound = document.getElementById("updateNotFound");
+        const updateLoading = document.getElementById("updateLoading");
+        const updateUnavailable =
+            document.getElementById("updateUnavailable");
 
-        const updatesForArtist =
-            artistId && FantrackUpdates.artistUpdates[artistId];
-        const update = updatesForArtist && updatesForArtist.find(function (item) {
-            return item.type === type && item.title === title;
-        });
+        function isUpdateRecord(update) {
+            return update !== null &&
+                typeof update === "object" &&
+                ["id", "artistId", "artistName", "type", "title",
+                    "description", "date", "link"].every(function (field) {
+                    return typeof update[field] === "string";
+                });
+        }
 
-        if (update && FantrackUpdates.artistNames[artistId]) {
-            document.title = update.title + " | FANTRACK";
-            document.getElementById("updateCategory").textContent =
-                update.type.charAt(0).toUpperCase() + update.type.slice(1);
-            document.getElementById("updateTitle").textContent = update.title;
-            document.getElementById("updateArtist").textContent =
-                FantrackUpdates.artistNames[artistId];
-            document.getElementById("updateDescription").textContent =
-                update.description;
-            document.getElementById("updateDate").textContent = update.date;
-
-            const artistProfileLink =
-                document.getElementById("artistProfileLink");
-            artistProfileLink.href =
-                "artist.html?artist=" + encodeURIComponent(artistId);
-            updateDetail.hidden = false;
-        } else {
+        function showNotFound() {
             const notFoundArtistLink =
                 document.getElementById("notFoundArtistLink");
-            if (artistId && FantrackUpdates.artistNames[artistId]) {
+            if (typeof artistId === "string" && artistId.length > 0) {
                 notFoundArtistLink.href =
                     "artist.html?artist=" + encodeURIComponent(artistId);
                 notFoundArtistLink.hidden = false;
             }
             updateNotFound.hidden = false;
         }
+
+        function showUpdate(update) {
+            document.title = update.title + " | FANTRACK";
+            document.getElementById("updateCategory").textContent =
+                update.type.charAt(0).toUpperCase() + update.type.slice(1);
+            document.getElementById("updateTitle").textContent = update.title;
+            document.getElementById("updateArtist").textContent =
+                update.artistName;
+            document.getElementById("updateDescription").textContent =
+                update.description;
+            document.getElementById("updateDate").textContent = update.date;
+
+            document.getElementById("artistProfileLink").href =
+                "artist.html?artist=" + encodeURIComponent(update.artistId);
+            updateDetail.hidden = false;
+        }
+
+        async function loadUpdate() {
+            try {
+                const response = await fetch("/api/updates", {
+                    headers: { Accept: "application/json" }
+                });
+                if (!response.ok) {
+                    throw new Error("API request failed");
+                }
+
+                const result = await response.json();
+                if (
+                    result === null ||
+                    typeof result !== "object" ||
+                    result.success !== true ||
+                    !Array.isArray(result.data) ||
+                    !result.data.every(isUpdateRecord)
+                ) {
+                    throw new Error("Unexpected API response");
+                }
+
+                const update = result.data.find(function (item) {
+                    return item.artistId === artistId &&
+                        item.type === type &&
+                        item.title === title;
+                });
+                if (update) {
+                    showUpdate(update);
+                } else {
+                    showNotFound();
+                }
+            } catch {
+                updateUnavailable.hidden = false;
+                document.title = "Unable to load update | FANTRACK";
+            } finally {
+                updateLoading.hidden = true;
+            }
+        }
+
+        loadUpdate();
     </script>
 </body>
 </html>
