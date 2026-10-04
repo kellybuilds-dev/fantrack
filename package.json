@@ -1,0 +1,17 @@
+{
+  "name": "fantrack",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FANTRACK static frontend and Node API",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env backend/server.js",
+    "db:migrate": "node --env-file-if-exists=.env ./node_modules/node-pg-migrate/bin/node-pg-migrate.js up -m backend/db/migrations",
+    "db:rollback": "node --env-file-if-exists=.env ./node_modules/node-pg-migrate/bin/node-pg-migrate.js down -m backend/db/migrations",
+    "db:import": "node --env-file-if-exists=.env backend/db/scripts/import-canonical-data.js",
+    "db:verify": "node --env-file-if-exists=.env backend/db/scripts/verify-canonical-data.js"
+  },
+  "dependencies": {
+    "node-pg-migrate": "^9.0.0",
+    "pg": "^8.23.1"
+  }
+}
