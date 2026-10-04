@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Artist | FANTRACK</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0b0b0f;
+            color: white;
+        }
+
+        header {
+            padding: 20px;
+            border-bottom: 1px solid #25252d;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #8b5cf6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 30px 20px;
+        }
+
+        .back {
+            color: #a1a1aa;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 25px;
+        }
+
+        .artist-header {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .artist-image {
+            width: 150px;
+            height: 150px;
+            margin: auto;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 55px;
+            margin-bottom: 20px;
+        }
+
+        .artist-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+
+        .artist-header h1 {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+
+        .artist-header p {
+            color: #a1a1aa;
+            margin-bottom: 20px;
+        }
+
+        .follow {
+            border: none;
+            background: #8b5cf6;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 25px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .section {
+            margin-top: 40px;
+        }
+
+        .section h2 {
+            margin-bottom: 18px;
+        }
+
+        .card {
+            background: #15151c;
+            border: 1px solid #272731;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            margin-bottom: 8px;
+        }
+
+        .card p {
+            color: #a1a1aa;
+            font-size: 14px;
+        }
+
+        .tag {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 6px 10px;
+            border-radius: 20px;
+            background: #241a3a;
+            color: #b794ff;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">FAN<span>TRACK</span></div>
+</header>
+
+<main class="container">
+
+    <a class="back" href="index.html">← Back to FANTRACK</a>
+
+    <section class="artist-header">
+
+        <div
+    class="artist-image"
+    id="artistImage"
+    style="
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin: 0 auto 20px;
+        border: 3px solid #8b5cf6;
+    "
+>
+    🎤
+</div>
+
+        <h1 id="artistName">Burna Boy</h1>
+
+        <p id="artistType">
+        Afrobeats • Nigeria
+    </p>
+
+    <p id="artistBio" style="color: #aaa; max-width: 600px; margin: 10px auto 20px;">
+    Follow this artist to stay updated on music, events, awards, news and merch.
+</p>
+
+        <div style="
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+">
+
+    <button class="follow" id="followButton">
+        ❤️ Follow Artist
+    </button>
+
+    <button class="follow" id="alertButton">
+        🔔 Get Alerts
+    </button>
+
+</div>
+<div id="alertOptions" style="display: none; margin-top: 15px;">
+
+    <p style="color: #aaa;">Choose your alerts:</p>
+
+    <label>
+        <input type="checkbox" id="musicAlert">
+        🎵 New Music
+    </label>
+
+    <br><br>
+
+    <label>
+        <input type="checkbox" id="eventAlert">
+        🎤 Events
+    </label>
+
+    <br><br>
+
+    <label>
+        <input type="checkbox" id="awardAlert">
+        🏆 Awards
+    </label>
+
+    <br><br>
+
+    <label>
+        <input type="checkbox" id="newsAlert">
+        📰 News
+    </label>
+
+    <br><br>
+
+    <label>
+        <input type="checkbox" id="merchAlert">
+        🛍️ Merch
+    </label>
+
+</div>
+<div
+    id="followerCount"
+    style="
+        display: inline-block;
+        margin-top: 15px;
+        padding: 8px 14px;
+        background: #18181b;
+        border: 1px solid #2a2a2e;
+        border-radius: 20px;
+        color: #aaa;
+        font-size: 14px;
+    "
+>
+    👥 0 followers
+</div>
+
+    </section>
+
+
+    <section class="section">
+
+        <h2>🎵 Latest Music</h2>
+
+        <div class="card">
+            <h3 id="musicTitle">Latest Single</h3>
+            <p id="latestMusic">New music from Burna Boy.</p>
+    <p id="trackCount"></p>
+
+    <a id="releaseLink" href="#" target="_blank" class="release-button">
+    🎧 Listen to Release
+</a>
+            <span class="tag">NEW MUSIC</span>
+        </div>
+
+    </section>
+
+
+    <section class="section">
+
+        <h2>🎤 Upcoming Events</h2>
+
+        <div class="card">
+            <h3 id="eventTitle">Live Tour</h3>
+<p id="upcomingEvent"></p>
+<p id="eventDetails"></p>
+<p id="eventDate"></p>
+<p id="eventLocation"></p>
+<a id="eventLink" href="#" target="_blank" class="release-button">
+    🎟️ Get Tickets
+</a>
+<span class="tag">TOUR</span>
+        </div>
+
+    </section>
+
+
+    <section class="section">
+
+        <h2>🏆 Awards</h2>
+
+        <div class="card">
+            <h3>Award Nomination</h3>
+            <p id="awardInfo">Latest award nomination and recognition.</p>
+            <span class="tag">AWARDS</span>
+        </div>
+
+    </section>
+
+
+    <section class="section">
+
+        <h2>👕 Merch</h2>
+
+        <div class="card">
+            <h3>Official Merchandise</h3>
+            <p id="merchInfo">Latest official artist merchandise.</p>
+            <span class="tag">MERCH</span>
+        </div>
+
+    </section>
+
+</main>
+<script>
+    const artistData = {
+        "burna-boy": {
+    name: "Burna Boy",
+    image: "burna-boy.jpg",
+    type: "Afrobeats • Nigeria",
+            music: {
+    title: "Dai Dai",
+    type: "EP",
+    year: "2026",
+    tracks: 4,
+    link: "https://burna.lnk.to/Music"
+},
+    event: {
+    title: "Burna Boy — Live in Abuja",
+    details: "Live performance",
+    date: "December 30, 2026",
+    location: "Moshood Abiola National Stadium, Abuja",
+    link: "https://www.bandsintown.com/a/1844148-burna-boy"
+},
+            award: "🏆 2026 AFRIMA — Album of the Year winner • 2026 Grammy nominee",
+            merch: {
+    text: "🛍️ Official Burna Boy merchandise — T-shirts, hoodies, caps and more.",
+    link: "https://burnaboy.lnk.to/store"
+},
+        },
+
+        "rema": {
+            name: "Rema",
+            image: "rema.jpg",
+            type: "Afrobeats • Nigeria",
+            music: {
+                title: "HEIS",
+                type: "Album",
+                year: "2024",
+                tracks: 11,
+                link: "https://open.spotify.com/album/2DHNcST4gCsrxxDCPgLbPn"
+            },
+            event: {
+    title: "No Upcoming Events",
+    details: "No confirmed Rema events are currently listed.",
+    date: "Check back for new dates",
+    location: "Worldwide",
+    link: "https://www.ticketmaster.com/rema-tickets/artist/2859659"
+},
+            award: "🏆 2026 AFRIMA — Artiste of the Year • Best Male Artiste in Western Africa • Best African R&B & Soul",
+            merch: {
+    text: "🛍️ Official Rema merchandise and products.",
+    link: "https://shop.heisrema.com/"
+},
+        },
+
+        "tems": {
+            name: "Tems",
+            image: "tems.jpg",
+            type: "R&B • Nigeria",
+            music: {
+    title: "What You Need",
+    type: "Single",
+    year: "2026",
+    tracks: 2,
+    link: "https://music.apple.com/us/album/what-you-need-single/1882510085"
+},
+            event: {
+    title: "No Upcoming Events",
+    details: "No confirmed Tems events are currently listed.",
+    date: "Check back for new dates",
+    location: "Worldwide",
+    link: "https://www.ticketmaster.com/tems-tickets/artist/2814074"
+},
+            award: "🏆 2025 Grammy Awards — Best African Music Performance winner for Love Me JeJe",
+
+            merch: {
+    text: "🛍️ Official Tems merchandise and products.",
+    link: "https://shop.leadingvibe.com/"
+},
+        },
+
+        "drake": {
+            name: "Drake",
+            image: "drake.jpg",
+            type: "Hip-Hop • Canada",
+            music: {
+    title: "HABIBTI (FOMO)",
+    type: "Album",
+    year: "2026",
+    tracks: 24,
+    link: "https://music.apple.com/us/artist/drake/271256"
+},
+        event: {
+    title: "No Upcoming Events",
+    details: "No confirmed Drake events are currently listed.",
+    date: "Check back for new dates",
+    location: "Worldwide",
+    link: "https://www.ticketmaster.com/drake-tickets/artist/1319371"
+},
+            award: "🏆 2026 Grammy Awards — Best Rap Album nominee for $ome $exy $ongs 4 U",
+merch: {
+    text: "🛍️ Official Drake merchandise and products.",
+    link: "https://www.amazon.com/stores/Drake/page/0A0A0A0A-0000-0000-0000-000000000000"
+},
+            },
+
+        "wizkid": {
+            name: "Wizkid",
+            image: "wizkid.jpg",
+            type: "Afrobeats • Nigeria",
+            music: {
+                title: "Morayo",
+                type: "Album",
+                year: "2024",
+                tracks: 16,
+                link: "https://open.spotify.com/artist/3tVQdUvClmAT7URs9V3rsp"
+            },
+            event: {
+                title: "No Upcoming Events",
+                details: "No confirmed Wizkid events are currently listed.",
+                date: "Check back for new dates",
+                location: "Worldwide",
+                link: "https://www.ticketmaster.com/wizkid-tickets/artist/1662152"
+            },
+            award: "🏆 Wizkid — Nigerian Afrobeats artist",
+            merch: {
+                text: "🛍️ Official Wizkid merchandise and products.",
+                link: "https://www.wizkidofficial.com/"
+            }
+        },
+
+        "davido": {
+            name: "Davido",
+            image: "davido.jpg",
+            type: "Afrobeats • Nigeria",
+            music: {
+                title: "5ive",
+                type: "Album",
+                year: "2025",
+                tracks: 17,
+                link: "https://open.spotify.com/artist/0Y3agQaaDVHeveYgHmfMuR"
+            },
+            event: {
+                title: "No Upcoming Events",
+                details: "No confirmed Davido events are currently listed.",
+                date: "Check back for new dates",
+                location: "Worldwide",
+                link: "https://www.ticketmaster.com/davido-tickets/artist/1769865"
+            },
+            award: "🏆 Davido — Nigerian Afrobeats artist",
+            merch: {
+                text: "🛍️ Official Davido merchandise and products.",
+                link: "https://www.davidoofficial.com/"
+            }
+        },
+
+        "asake": {
+            name: "Asake",
+            type: "Afrobeats • Nigeria",
+            music: {
+                title: "Latest Release",
+                type: "Music",
+                year: "2026",
+                tracks: 1,
+                link: "https://open.spotify.com/artist/3a1tBryiczPaRX4NnP1G8o"
+            },
+            event: {
+                title: "No Upcoming Events",
+                details: "No confirmed Asake events are currently listed.",
+                date: "Check back for new dates",
+                location: "Worldwide",
+                link: "#"
+            },
+            award: "🏆 Asake — Nigerian Afrobeats artist",
+            merch: {
+                text: "Official Asake merchandise.",
+                link: "#"
+            }
+        },
+
+    "ayra-starr": {
+        name: "Ayra Starr",
+        type: "Afrobeats • Nigeria",
+        music: {
+            title: "Latest Release",
+            type: "Music",
+            year: "2026",
+            tracks: 1,
+            link: "https://open.spotify.com/artist/3ZpEKRjHaHANcpkhlVgaz8"
+        },
+        event: {
+            title: "No Upcoming Events",
+            details: "No confirmed Ayra Starr events are currently listed.",
+            date: "Check back for new dates",
+            location: "Worldwide",
+            link: "#"
+        },
+        award: "🏆 Ayra Starr — Nigerian Afrobeats artist",
+        merch: {
+            text: "Official Ayra Starr merchandise.",
+            link: "#"
+        }
+    },
+
+    "omah-lay": {
+        name: "Omah Lay",
+        type: "Afrobeats • Nigeria",
+        music: {
+            title: "Latest Release",
+            type: "Music",
+            year: "2026",
+            tracks: 1,
+            link: "https://open.spotify.com/artist/5yOvAmpIR7hVxiS6Ls5DPO"
+        },
+        event: {
+            title: "No Upcoming Events",
+            details: "No confirmed Omah Lay events are currently listed.",
+            date: "Check back for new dates",
+            location: "Worldwide",
+            link: "#"
+        },
+        award: "🏆 Omah Lay — Nigerian Afrobeats artist",
+        merch: {
+            text: "Official Omah Lay merchandise.",
+            link: "#"
+        }
+    },
+
+    "fireboy-dml": {
+        name: "Fireboy DML",
+        type: "Afrobeats • Nigeria",
+        music: {
+            title: "Latest Release",
+            type: "Music",
+            year: "2026",
+            tracks: 1,
+            link: "https://open.spotify.com/artist/3Za28K2E6r2aO7d2t9mV7R"
+        },
+        event: {
+            title: "No Upcoming Events",
+            details: "No confirmed Fireboy DML events are currently listed.",
+            date: "Check back for new dates",
+            location: "Worldwide",
+            link: "#"
+        },
+        award: "🏆 Fireboy DML — Nigerian Afrobeats artist",
+        merch: {
+            text: "Official Fireboy DML merchandise.",
+            link: "#"
+        }
+    },
+
+    "seyi-vibez": {
+        name: "Seyi Vibez",
+        type: "Afrobeats • Nigeria",
+        music: {
+            title: "Latest Release",
+            type: "Music",
+            year: "2026",
+            tracks: 1,
+            link: "https://open.spotify.com/artist/2q5qF0b1Vn2zQ3h6F9Q0jJ"
+        },
+        event: {
+            title: "No Upcoming Events",
+            details: "No confirmed Seyi Vibez events are currently listed.",
+            date: "Check back for new dates",
+            location: "Worldwide",
+            link: "#"
+        },
+        award: "🏆 Seyi Vibez — Nigerian artist",
+        merch: {
+            text: "Official Seyi Vibez merchandise.",
+            link: "#"
+        }
+    },
+
+    "shallipopi": {
+        name: "Shallipopi",
+        type: "Afrobeats • Nigeria",
+        music: {
+            title: "Latest Release",
+            type: "Music",
+            year: "2026",
+            tracks: 1,
+            link: "https://open.spotify.com/artist/6l3HvQ5sa6mXTsMTB19rO5"
+        },
+        event: {
+            title: "No Upcoming Events",
+            details: "No confirmed Shallipopi events are currently listed.",
+            date: "Check back for new dates",
+            location: "Worldwide",
+            link: "#"
+        },
+        award: "🏆 Shallipopi — Nigerian Afrobeats artist",
+        merch: {
+            text: "Official Shallipopi merchandise.",
+            link: "#"
+        }
+    },
+
+    "the-weeknd": {
+        name: "The Weeknd",
+        type: "R&B • Canada",
+        music: {
+            title: "Latest Release",
+            type: "Music",
+            year: "2026",
+            tracks: 1,
+            link: "https://open.spotify.com/artist/1Xyo4u8uXC1ZmMpatF05PJ"
+        },
+        event: {
+            title: "No Upcoming Events",
+            details: "No confirmed events are currently listed.",
+            date: "Check back for new dates",
+            location: "Worldwide",
+            link: "#"
+        },
+        award: "🏆 The Weeknd — Canadian singer and songwriter",
+        merch: {
+            text: "Official The Weeknd merchandise.",
+            link: "#"
+        }
+    },
+
+    "sza": {
+        name: "SZA",
+        type: "R&B • USA",
+        music: {
+            title: "Latest Release",
+            type: "Music",
+            year: "2026",
+            tracks: 1,
+            link: "https://open.spotify.com/artist/7tYKF4w9nC0nq9CsPZTHyP"
+        },
+        event: {
+            title: "No Upcoming Events",
+            details: "No confirmed SZA events are currently listed.",
+            date: "Check back for new dates",
+            location: "Worldwide",
+            link: "#"
+        },
+        award: "🏆 SZA — American R&B artist",
+        merch: {
+            text: "Official SZA merchandise.",
+            link: "#"
+        }
+    },
+
+    "travis-scott": {
+        name: "Travis Scott",
+        type: "Hip-Hop • USA",
+        music: {
+            title: "Latest Release",
+            type: "Music",
+            year: "2026",
+            tracks: 1,
+            link: "https://open.spotify.com/artist/1iNqsUDUraNWrjQWJmFB2J"
+        },
+        event: {
+            title: "No Upcoming Events",
+            details: "No confirmed Travis Scott events are currently listed.",
+            date: "Check back for new dates",
+            location: "Worldwide",
+            link: "#"
+        },
+        award: "🏆 Travis Scott — American rapper",
+        merch: {
+            text: "Official Travis Scott merchandise.",
+            link: "#"
+        }
+    },
+
+    "future": {
+        name: "Future",
+        type: "Hip-Hop • USA",
+        music: {
+            title: "Latest Release",
+            type: "Music",
+            year: "2026",
+            tracks: 1,
+            link: "https://open.spotify.com/artist/1RyvyyTE3xzB2ZywiAwp0i"
+        },
+        event: {
+            title: "No Upcoming Events",
+            details: "No confirmed Future events are currently listed.",
+            date: "Check back for new dates",
+            location: "Worldwide",
+            link: "#"
+        },
+        award: "🏆 Future — American rapper",
+        merch: {
+            text: "Official Future merchandise.",
+            link: "#"
+        }
+    }
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const artist = params.get("artist");
+    const currentArtist = artist || "burna-boy";
+    const data = artistData[currentArtist];
+
+    const artistName = document.getElementById("artistName");
+    const artistType = document.getElementById("artistType");
+    const artistImage = document.getElementById("artistImage");
+    const latestMusic = document.getElementById("latestMusic");
+    const musicTitle = document.getElementById("musicTitle");
+    const upcomingEvent = document.getElementById("upcomingEvent");
+    const awardInfo = document.getElementById("awardInfo");
+    const merchInfo = document.getElementById("merchInfo");
+    const trackCount = document.getElementById("trackCount");
+    const releaseLink = document.getElementById("releaseLink");
+    const eventTitle = document.getElementById("eventTitle");
+    const eventDetails = document.getElementById("eventDetails");
+    const eventDate = document.getElementById("eventDate");
+    const eventLocation = document.getElementById("eventLocation");
+    const eventLink = document.getElementById("eventLink");
+    const alertButton = document.getElementById("alertButton");
+    const followButton = document.getElementById("followButton");
+    const followerCount = document.getElementById("followerCount");
+    
+
+    if (data) {
+        artistName.textContent = data.name;
+        artistType.textContent = data.type;
+        if (data.image) {
+
+    artistImage.innerHTML =
+        `<img src="${data.image}" alt="${data.name}">`;
+
+} else {
+
+    artistImage.innerHTML = "🎤";
+
+}
+        latestMusic.textContent =
+    data.music.title + " • " +
+    data.music.type + " • " +
+    data.music.year;
+    
+    trackCount.textContent = data.music.tracks + " tracks";
+    releaseLink.href = data.music.link;
+    eventTitle.textContent = data.event.title;
+    eventDetails.textContent = data.event.details;
+    eventDate.textContent = "📅 " + data.event.date;
+    eventLocation.textContent = "📍 " + data.event.location;
+    eventLink.href = data.event.link;
+    awardInfo.textContent = data.award;
+    merchInfo.innerHTML = `
+    <a href="${data.merch.link}" target="_blank" class="release-button">
+        🛍️ Visit Official Merch
+    </a>
+`;
+    musicTitle.textContent = "Latest Release";
+    document.title = data.name + " | FANTRACK";
+    }
+
+    const followed = localStorage.getItem("followed_" + currentArtist);
+
+    if (followed === "true") {
+        followButton.textContent = "✓ Following";
+    }
+    if (followed === "true") {
+
+    const savedFollowers =
+        localStorage.getItem("followers_" + currentArtist);
+
+    const count =
+        savedFollowers === null
+            ? 1
+            : Number(savedFollowers);
+
+    if (savedFollowers === null) {
+        localStorage.setItem(
+            "followers_" + currentArtist,
+            count
+        );
+    }
+
+    followerCount.textContent =
+        "👥 " + count + " followers";
+}
+    const alerts = localStorage.getItem("alerts_" + currentArtist);
+
+    if (alerts === "true") {
+        alertButton.textContent = "🔔 Alerts On";
+    }
+
+    followButton.addEventListener("click", function () {
+    const isFollowing =
+        localStorage.getItem("followed_" + currentArtist) === "true";
+
+    if (isFollowing) {
+        localStorage.removeItem("followed_" + currentArtist);
+        followButton.textContent = "❤️ Follow Artist";
+    } else {
+        localStorage.setItem("followed_" + currentArtist, "true");
+        followButton.textContent = "✓ Following";
+    }
+
+    let followers =
+    Number(localStorage.getItem("followers_" + currentArtist)) || 0;
+
+if (localStorage.getItem("followed_" + currentArtist) === "true") {
+
+    followers++;
+
+} else {
+
+    followers = Math.max(0, followers - 1);
+
+}
+
+localStorage.setItem(
+    "followers_" + currentArtist,
+    followers
+);
+
+followerCount.textContent =
+    "👥 " + followers + " followers";
+});
+
+    const alertOptions = document.getElementById("alertOptions");
+
+    if (localStorage.getItem("alerts_" + currentArtist) === "true") {
+        alertButton.textContent = "🔔 Alerts On";
+        alertOptions.style.display = "block";
+    } else {
+        alertOptions.style.display = "none";
+    }
+
+    alertButton.addEventListener("click", function () {
+        const alertsOn =
+            localStorage.getItem("alerts_" + currentArtist) === "true";
+
+        if (alertsOn) {
+            localStorage.removeItem("alerts_" + currentArtist);
+            alertButton.textContent = "🔔 Get Alerts";
+            alertOptions.style.display = "none";
+        } else {
+            localStorage.setItem("alerts_" + currentArtist, "true");
+            alertButton.textContent = "🔔 Alerts On";
+            alertOptions.style.display = "block";
+        }
+    });
+    const alertTypes = [
+    "music",
+    "event",
+    "award",
+    "news",
+    "merch"
+];
+
+alertTypes.forEach(function (type) {
+
+    const checkbox = document.getElementById(type + "Alert");
+
+    checkbox.checked =
+        localStorage.getItem(
+            "alert_" + type + "_" + currentArtist
+        ) === "true";
+
+    checkbox.addEventListener("change", function () {
+
+        if (checkbox.checked) {
+            localStorage.setItem(
+                "alert_" + type + "_" + currentArtist,
+                "true"
+            );
+        } else {
+            localStorage.removeItem(
+                "alert_" + type + "_" + currentArtist
+            );
+        }
+
+    });
+
+});
+</script>
+</body>
+</html>

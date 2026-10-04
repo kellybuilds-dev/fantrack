@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications | FANTRACK</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f0f0f;
+            color: white;
+        }
+
+        header {
+            padding: 20px;
+            border-bottom: 1px solid #222;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #8b5cf6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 30px 20px;
+        }
+
+        .back {
+            color: #aaa;
+            text-decoration: none;
+        }
+
+        h1 {
+            margin-top: 30px;
+        }
+
+        .notification {
+            background: #181818;
+            border: 1px solid #262626;
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 15px;
+        }
+
+        .notification h3 {
+            margin: 0 0 8px;
+        }
+
+        .notification p {
+            color: #aaa;
+            margin: 0;
+        }
+
+        .tag {
+            display: inline-block;
+            margin-top: 12px;
+            font-size: 12px;
+            color: #8b5cf6;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">FAN<span>TRACK</span></div>
+</header>
+
+<main class="container">
+
+    <a class="back" href="index.html">← Back to FANTRACK</a>
+
+    <h1 id="notificationsTitle">🔔 Notifications</h1>
+
+<p style="color: #aaa; margin-top: -15px;">
+    Updates from the artists you follow.
+</p>
+<button
+    id="markAllRead"
+    style="
+        margin-top: 15px;
+        padding: 10px 16px;
+        background: #8b5cf6;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    "
+>
+    ✓ Mark all as read
+</button>
+
+<div id="notificationsList"></div>
+
+</main>
+<script>
+    const notificationsList =
+        document.getElementById("notificationsList");
+
+    const notificationsTitle =
+    document.getElementById("notificationsTitle");
+
+    let unreadCount = 0;
+
+    const markAllRead =
+    document.getElementById("markAllRead");
+    const artists = [
+        {
+            id: "burna-boy",
+            name: "Burna Boy"
+        },
+        {
+            id: "rema",
+            name: "Rema"
+        },
+        {
+            id: "tems",
+            name: "Tems"
+        },
+        {
+            id: "drake",
+            name: "Drake"
+        },
+        {
+            id: "wizkid",
+            name: "Wizkid"
+        },
+        {
+            id: "davido",
+            name: "Davido"
+        }
+    ];
+
+    const artistUpdates = {
+        "burna-boy": [
+            {
+                type: "music",
+                title: "Dai Dai",
+                description: "Burna Boy has new music available.",
+                date: "2026",
+                link: "artist.html?artist=burna-boy"
+            },
+            {
+                type: "event",
+                title: "Upcoming Event",
+                description: "Burna Boy has an upcoming live event.",
+                date: "December 30, 2026",
+                link: "artist.html?artist=burna-boy"
+            },
+            {
+                type: "award",
+                title: "Award Update",
+                description: "Burna Boy has new award information.",
+                date: "2026",
+                link: "artist.html?artist=burna-boy"
+            },
+            {
+                type: "news",
+                title: "Artist News",
+                description: "Burna Boy has a new announcement.",
+                date: "2026",
+                link: "artist.html?artist=burna-boy"
+            },
+            {
+                type: "merch",
+                title: "New Merch",
+                description: "Burna Boy has new merchandise available.",
+                date: "2026",
+                link: "artist.html?artist=burna-boy"
+            }
+        ],
+
+        "rema": [
+            {
+                type: "music",
+                title: "HEIS",
+                description: "Rema's latest album.",
+                date: "2024",
+                link: "artist.html?artist=rema"
+            }
+        ],
+
+        "tems": [
+            {
+                type: "music",
+                title: "What You Need",
+                description: "Tems has new music available.",
+                date: "2026",
+                link: "artist.html?artist=tems"
+            }
+        ],
+
+        "drake": [
+            {
+                type: "music",
+                title: "HABIBTI (FOMO)",
+                description: "Drake has a new music update.",
+                date: "2026",
+                link: "artist.html?artist=drake"
+            }
+        ],
+
+        "wizkid": [
+            {
+                type: "music",
+                title: "Morayo",
+                description: "Wizkid's latest album.",
+                date: "2024",
+                link: "artist.html?artist=wizkid"
+            }
+        ],
+
+        "davido": [
+            {
+                type: "music",
+                title: "5ive",
+                description: "Davido's latest album.",
+                date: "2025",
+                link: "artist.html?artist=davido"
+            }
+        ]
+    };
+
+
+    const followedArtists = artists.filter(function (artist) {
+
+        return localStorage.getItem(
+            "followed_" + artist.id
+        ) === "true";
+
+    });
+
+
+    if (followedArtists.length === 0) {
+
+        notificationsList.innerHTML = `
+            <div class="notification">
+
+                <h3>❤️ No followed artists yet</h3>
+
+                <p>
+                    Follow your favorite artists to receive their updates.
+                </p>
+
+            </div>
+        `;
+
+    } else {
+
+        followedArtists.forEach(function (artist) {
+
+            const updates =
+                artistUpdates[artist.id] || [];
+
+
+            updates.forEach(function (update) {
+
+                let icon = "⚡";
+
+
+                if (update.type === "music") {
+                    icon = "🎵";
+                }
+
+                if (update.type === "event") {
+                    icon = "🎤";
+                }
+
+                if (update.type === "award") {
+                    icon = "🏆";
+                }
+
+                if (update.type === "news") {
+                    icon = "📰";
+                }
+
+                if (update.type === "merch") {
+                    icon = "🛍️";
+                }
+
+
+                const alertEnabled =
+                    localStorage.getItem(
+                        "alert_" +
+                        update.type +
+                        "_" +
+                        artist.id
+                    ) === "true";
+
+
+                if (!alertEnabled) {
+                    return;
+                }
+
+            const isRead =
+    localStorage.getItem(
+        "read_" + artist.id + "_" + update.type + "_" + update.title
+    ) === "true";
+
+if (!isRead) {
+    unreadCount++;
+}
+
+                notificationsList.innerHTML += `
+
+ <div
+    class="notification"
+    onclick="localStorage.setItem('read_${artist.id}_${update.type}_${update.title}', 'true'); window.location.href='${update.link}'"
+    style="cursor: pointer;"
+>
+
+    <h3>
+       ${icon} ${artist.name} — ${update.title}
+    </h3>
+    ${localStorage.getItem(
+    "read_" + artist.id + "_" + update.type + "_" + update.title
+) === "true"
+    ? ""
+    : `<span class="unread">🔴 UNREAD</span>`
+}
+                        <p>
+                            ${update.description}
+                        </p>
+
+                        <p style="color: #666;">
+                            ${update.date}
+                        </p>
+
+                        <a
+                            href="${update.link}"
+                            style="color: #8b5cf6; text-decoration: none;"
+                        >
+                            View Update →
+                        </a>
+
+                        <span class="tag">
+                            ${update.type.toUpperCase()}
+                        </span>
+
+                    </div>
+
+                `;
+
+            });
+
+        });
+    
+    }
+    if (unreadCount > 0) {
+    notificationsTitle.textContent =
+        "🔔 Notifications (" + unreadCount + ")";
+} else {
+    notificationsTitle.textContent =
+        "🔔 Notifications";
+
+    markAllRead.style.display = "none";
+}
+markAllRead.addEventListener("click", function () {
+
+    followedArtists.forEach(function (artist) {
+
+        const updates =
+            artistUpdates[artist.id] || [];
+
+        updates.forEach(function (update) {
+
+            const alertEnabled =
+                localStorage.getItem(
+                    "alert_" +
+                    update.type +
+                    "_" +
+                    artist.id
+                ) === "true";
+
+            if (alertEnabled) {
+
+                localStorage.setItem(
+                    "read_" +
+                    artist.id +
+                    "_" +
+                    update.type +
+                    "_" +
+                    update.title,
+                    "true"
+                );
+
+            }
+
+        });
+
+    });
+
+    location.reload();
+
+});
+</script>
+</body>
+</html>

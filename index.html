@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FANTRACK</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0b0b0f;
+            color: white;
+        }
+
+        header {
+            padding: 22px;
+            border-bottom: 1px solid #25252d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #8b5cf6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 40px 20px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .hero h1 {
+            font-size: 42px;
+            margin-bottom: 12px;
+        }
+
+        .hero p {
+            color: #a1a1aa;
+            font-size: 17px;
+            margin-bottom: 25px;
+        }
+
+        .search {
+            width: 100%;
+            max-width: 600px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid #30303a;
+            background: #15151c;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .section {
+            margin-top: 45px;
+        }
+
+        .section h2 {
+            margin-bottom: 20px;
+        }
+
+        .artists {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 18px;
+        }
+
+        .artist {
+            background: #15151c;
+            border: 1px solid #272731;
+            border-radius: 16px;
+            padding: 20px;
+            transition: 0.2s;
+        }
+
+        .artist:hover {
+            transform: translateY(-3px);
+            border-color: #8b5cf6;
+        }
+
+        .artist-image {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .artist-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+        .artist h3 {
+            margin-bottom: 6px;
+        }
+
+        .artist p {
+            color: #a1a1aa;
+            font-size: 14px;
+        }
+
+        .updates {
+            display: grid;
+            gap: 15px;
+        }
+
+        .update {
+            background: #15151c;
+            border: 1px solid #272731;
+            padding: 20px;
+            border-radius: 14px;
+        }
+
+        .update-title {
+            font-size: 17px;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        .update-info {
+            color: #a1a1aa;
+            font-size: 14px;
+        }
+
+        .tag {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 6px 10px;
+            border-radius: 20px;
+            background: #241a3a;
+            color: #b794ff;
+            font-size: 12px;
+        }
+
+        footer {
+            margin-top: 70px;
+            padding: 30px 20px;
+            text-align: center;
+            border-top: 1px solid #25252d;
+            color: #71717a;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">FAN<span>TRACK</span></div>
+
+    <a
+    href="notifications.html"
+    id="notificationsLink"
+    style="color: white; text-decoration: none;"
+>
+    🔔 Notifications
+    <span
+        id="notificationBadge"
+        style="
+            display: none;
+            background: #ef4444;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 3px 7px;
+            border-radius: 20px;
+            margin-left: 5px;
+        "
+    >
+        0
+    </span>
+</a>
+</header>
+
+<main class="container">
+
+    <section class="hero">
+        <h1>Never miss what happens next.</h1>
+
+        <p>
+            Follow your favorite artists and stay updated on
+            music, tours, events, awards, merch and more.
+        </p>
+
+        <input
+    class="search"
+    id="artistSearch"
+    type="text"
+    placeholder="🔎 Search for an artist..."
+>
+
+<div id="searchResults"></div>
+    </section>
+
+
+    <section class="section">
+
+    <h2>🔥 Popular Artists</h2>
+    <p style="color: #aaa; margin-bottom: 20px;">
+    Discover artists and follow the ones you love.
+</p>
+    <section>
+    <h2>⚡ Latest Updates</h2>
+
+    <p style="color: #aaa; margin-bottom: 20px;">
+        Updates from the artists you follow.
+    </p>
+
+    <div id="latestUpdates"></div>
+</section>
+    <section>
+    <h2>❤️ My Artists</h2>
+
+    <div id="myArtists">
+        <p>No artists followed yet.</p>
+    </div>
+</section>
+
+    <div class="artists">
+
+            <a href="artist.html" style="text-decoration: none; color: inherit;">
+
+    <div class="artist" id="artist-burna-boy">
+
+        <div class="artist-image">
+    <img src="burna-boy.jpg" alt="Burna Boy">
+</div>
+
+        <h3>Burna Boy</h3>
+
+        <p>
+            Afrobeats • Nigeria
+        </p>
+
+    </div>
+
+</a>
+            <a href="artist.html?artist=rema" style="text-decoration: none; color: inherit;">
+    <div class="artist" id="artist-rema">
+
+        <div class="artist-image">
+    <img src="rema.jpg" alt="Rema">
+</div>
+
+        <h3>Rema</h3>
+
+        <p>
+            Afrobeats • Nigeria
+        </p>
+
+    </div>
+
+</a>
+           <a href="artist.html?artist=tems" style="text-decoration: none; color: inherit;">
+    <div class="artist" id="artist-tems">
+        <div class="artist-image">
+    <img src="tems.jpg" alt="Tems">
+</div>
+        <h3>Tems</h3>
+        <p>R&B • Nigeria</p>
+    </div>
+</a>
+            <a href="artist.html?artist=drake" style="text-decoration: none; color: inherit;">
+    <div class="artist" id="artist-drake">
+        <div class="artist-image">
+    <img src="drake.jpg" alt="Drake">
+</div>
+        <h3>Drake</h3>
+        <p>Hip-Hop • Canada</p>
+    </div>
+</a>
+
+<a href="artist.html?artist=wizkid" style="text-decoration: none; color: inherit;">
+    <div class="artist" id="artist-wizkid">
+        <div class="artist-image">
+            <img src="wizkid.jpg" alt="Wizkid">
+        </div>
+        <h3>Wizkid</h3>
+        <p>Afrobeats • Nigeria</p>
+    </div>
+</a>
+
+<a href="artist.html?artist=davido" style="text-decoration: none; color: inherit;">
+    <div class="artist" id="artist-davido">
+        <div class="artist-image">
+            <img src="davido.jpg" alt="Davido">
+        </div>
+        <h3>Davido</h3>
+        <p>Afrobeats • Nigeria</p>
+    </div>
+</a>
+
+        </div>
+
+    </section>
+
+
+    <section class="section">
+
+        <h2>📰 Latest Updates</h2>
+
+        <div class="updates">
+
+            <div class="update">
+                <div class="update-title">
+                    🎵 New music released
+                </div>
+
+                <div class="update-info">
+                    Your favorite artist has released a new single.
+                </div>
+
+                <span class="tag">NEW MUSIC</span>
+            </div>
+
+
+            <div class="update">
+                <div class="update-title">
+                    🎤 Tour announcement
+                </div>
+
+                <div class="update-info">
+                    A new tour date has been announced.
+                </div>
+
+                <span class="tag">TOUR</span>
+            </div>
+
+
+            <div class="update">
+                <div class="update-title">
+                    🏆 Award nomination
+                </div>
+
+                <div class="update-info">
+                    An artist has received a new nomination.
+                </div>
+
+                <span class="tag">AWARDS</span>
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<footer>
+    FANTRACK © 2026 — Follow the artists you love.
+</footer>
+<script>
+    const myArtists = document.getElementById("myArtists");
+
+    const notificationsLink =
+    document.getElementById("notificationsLink");
+
+    const notificationBadge =
+    document.getElementById("notificationBadge");
+
+    let unreadCount = 0;
+
+    const artists = [
+    {
+        id: "burna-boy",
+        name: "Burna Boy",
+        type: "Afrobeats • Nigeria",
+        music: "Dai Dai"
+    },
+    {
+        id: "rema",
+        name: "Rema",
+        type: "Afrobeats • Nigeria",
+        music: "HEIS"
+    },
+    {
+        id: "tems",
+        name: "Tems",
+        type: "R&B • Nigeria",
+        music: "What You Need"
+    },
+    {
+        id: "drake",
+        name: "Drake",
+        type: "Hip-Hop • Canada",
+        music: "HABIBTI (FOMO)"
+    },
+    {
+        id: "wizkid",
+        name: "Wizkid",
+        type: "Afrobeats • Nigeria",
+        music: "Morayo"
+    },
+    {
+        id: "davido",
+        name: "Davido",
+        type: "Afrobeats • Nigeria",
+        music: "5ive"
+    },
+    {
+        id: "asake",
+        name: "Asake",
+        type: "Afrobeats • Nigeria",
+        music: ""
+    },
+    {
+        id: "ayra-starr",
+        name: "Ayra Starr",
+        type: "Afrobeats • Nigeria",
+        music: ""
+    },
+    {
+        id: "omah-lay",
+        name: "Omah Lay",
+        type: "Afrobeats • Nigeria",
+        music: ""
+    },
+    {
+        id: "fireboy-dml",
+        name: "Fireboy DML",
+        type: "Afrobeats • Nigeria",
+        music: ""
+    },
+    {
+        id: "seyi-vibez",
+        name: "Seyi Vibez",
+        type: "Afrobeats • Nigeria",
+        music: ""
+    },
+    {
+        id: "shallipopi",
+        name: "Shallipopi",
+        type: "Afrobeats • Nigeria",
+        music: ""
+    },
+    {
+        id: "the-weeknd",
+        name: "The Weeknd",
+        type: "R&B • Canada",
+        music: ""
+    },
+    {
+        id: "sza",
+        name: "SZA",
+        type: "R&B • USA",
+        music: ""
+    },
+    {
+        id: "travis-scott",
+        name: "Travis Scott",
+        type: "Hip-Hop • USA",
+        music: ""
+    },
+    {
+        id: "future",
+        name: "Future",
+        type: "Hip-Hop • USA",
+        music: ""
+    }
+];
+
+const artistUpdates = {
+    "burna-boy": [
+        {
+            type: "music",
+            title: "Dai Dai",
+            description: "Burna Boy has new music available.",
+            date: "2026",
+            link: "artist.html?artist=burna-boy"
+        },
+        {
+            type: "event",
+            title: "Upcoming Event",
+            description: "Burna Boy has an upcoming live event.",
+            date: "December 30, 2026",
+            link: "artist.html?artist=burna-boy"
+        },
+        {
+            type: "award",
+            title: "Award Update",
+            description: "Burna Boy has new award information.",
+            date: "2026",
+            link: "artist.html?artist=burna-boy"
+        },
+        {
+            type: "news",
+            title: "Artist News",
+            description: "Burna Boy has a new announcement.",
+            date: "2026",
+            link: "artist.html?artist=burna-boy"
+        },
+        {
+            type: "merch",
+            title: "New Merch",
+            description: "Burna Boy has new merchandise available.",
+            date: "2026",
+            link: "artist.html?artist=burna-boy"
+        }
+    ],
+
+    "rema": [
+        {
+            type: "music",
+            title: "HEIS",
+            description: "Rema's latest album.",
+            date: "2024",
+            link: "artist.html?artist=rema"
+        }
+    ],
+
+    "tems": [
+        {
+            type: "music",
+            title: "What You Need",
+            description: "Tems has new music available.",
+            date: "2026",
+            link: "artist.html?artist=tems"
+        }
+    ],
+
+    "drake": [
+        {
+            type: "music",
+            title: "HABIBTI (FOMO)",
+            description: "Drake has a new music update.",
+            date: "2026",
+            link: "artist.html?artist=drake"
+        }
+    ],
+
+    "wizkid": [
+        {
+            type: "music",
+            title: "Morayo",
+            description: "Wizkid's latest album.",
+            date: "2024",
+            link: "artist.html?artist=wizkid"
+        }
+    ],
+
+    "davido": [
+        {
+            type: "music",
+            title: "5ive",
+            description: "Davido's latest album.",
+            date: "2025",
+            link: "artist.html?artist=davido"
+        }
+    ]
+};
+
+const followedArtists = artists.filter(function (artist) {
+    return localStorage.getItem("followed_" + artist.id) === "true";
+});
+
+if (followedArtists.length > 0) {
+
+    myArtists.innerHTML = "";
+
+    followedArtists.forEach(function (artist) {
+
+        myArtists.innerHTML += `
+            <a href="artist.html?artist=${artist.id}"
+               style="text-decoration: none; color: inherit;">
+
+                <div class="artist">
+
+                    <div class="artist-image">
+                        <img src="${artist.id}.jpg"
+                             alt="${artist.name}">
+                    </div>
+
+                    <h3>${artist.name}</h3>
+
+                    <p>${artist.type}</p>
+
+                </div>
+
+            </a>
+        `;
+
+    });
+}
+
+const artistSearch =
+    document.getElementById("artistSearch");
+
+const searchResults =
+    document.getElementById("searchResults");
+
+artistSearch.addEventListener("input", function () {
+
+    const searchText =
+        artistSearch.value.toLowerCase().trim();
+
+    searchResults.innerHTML = "";
+
+    if (searchText === "") {
+        return;
+    }
+
+    let foundArtist = false;
+
+    artists.forEach(function (artist) {
+
+        if (artist.name.toLowerCase().includes(searchText)) {
+
+            foundArtist = true;
+
+            searchResults.innerHTML += `
+                <a
+                    href="artist.html?artist=${artist.id}"
+                    style="
+                        display: block;
+                        padding: 15px;
+                        margin-top: 10px;
+                        background: #15151c;
+                        border: 1px solid #272731;
+                        border-radius: 12px;
+                        color: white;
+                        text-decoration: none;
+                    "
+                >
+                    🎤 ${artist.name}
+
+                    <span style="color: #aaa; margin-left: 8px;">
+                        ${artist.type}
+                    </span>
+
+                </a>
+            `;
+
+        }
+
+    });
+
+    if (!foundArtist) {
+
+        searchResults.innerHTML = `
+            <div
+                style="
+                    padding: 20px;
+                    margin-top: 10px;
+                    background: #15151c;
+                    border: 1px solid #272731;
+                    border-radius: 12px;
+                    color: #aaa;
+                    text-align: center;
+                "
+            >
+                🔎 No artists found
+            </div>
+        `;
+
+    }
+
+});
+const followedForFeed = artists.filter(function (artist) {
+
+    return localStorage.getItem(
+        "followed_" + artist.id
+    ) === "true";
+
+});
+
+
+followedForFeed.forEach(function (artist) {
+
+    const updates =
+        artistUpdates[artist.id] || [];
+
+    updates.forEach(function (update) {
+
+        const alertEnabled =
+            localStorage.getItem(
+                "alert_" +
+                update.type +
+                "_" +
+                artist.id
+            ) === "true";
+
+        if (!alertEnabled) {
+            return;
+        }
+
+
+        const isRead =
+            localStorage.getItem(
+                "read_" +
+                artist.id +
+                "_" +
+                update.type +
+                "_" +
+                update.title
+            ) === "true";
+
+
+        if (!isRead) {
+            unreadCount++;
+        }
+
+    });
+
+});
+
+if (followedForFeed.length === 0) {
+
+    latestUpdates.innerHTML = `
+        <div class="notification">
+            <h3>❤️ Follow an artist</h3>
+            <p>
+                Follow your favorite artists to see their latest updates here.
+            </p>
+        </div>
+    `;
+
+} else {
+
+    followedForFeed.forEach(function (artist) {
+
+        const updates = artistUpdates[artist.id] || [];
+
+        updates.forEach(function (update) {
+
+            let icon = "⚡";
+
+            if (update.type === "music") {
+                icon = "🎵";
+            }
+
+            if (update.type === "event") {
+                icon = "🎤";
+            }
+
+            if (update.type === "award") {
+                icon = "🏆";
+            }
+
+            if (update.type === "news") {
+                icon = "📰";
+            }
+
+            if (update.type === "merch") {
+                icon = "🛍️";
+            }
+
+            latestUpdates.innerHTML += `
+ <div
+    class="notification"
+    onclick="window.location.href='${update.link}'"
+    style="cursor: pointer;"
+>
+                    <h3>
+                        ${icon} ${artist.name} — ${update.title}
+                    </h3>
+
+                    <p>
+                        ${update.description}
+                    </p>
+
+                    <p style="color: #666;">
+                        ${update.date}
+                    </p>
+
+                    <a href="${update.link}"
+                       style="color: #8b5cf6; text-decoration: none;">
+                        View Update →
+                    </a>
+
+                    <span class="tag">
+                        ${update.type.toUpperCase()}
+                    </span>
+
+                </div>
+            `;
+
+        });
+
+    });
+
+}
+if (unreadCount > 0) {
+
+    notificationBadge.textContent =
+        unreadCount;
+
+    notificationBadge.style.display =
+        "inline-block";
+
+} else {
+
+    notificationBadge.style.display =
+        "none";
+
+}
+</script>
+</body>
+</html>
