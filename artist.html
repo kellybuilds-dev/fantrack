@@ -34,97 +34,425 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1080px;
             margin: auto;
-            padding: 30px 20px;
+            padding: 30px 24px 60px;
         }
 
         .back {
             color: #a1a1aa;
             text-decoration: none;
             display: inline-block;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+            transition: color 0.2s ease;
+        }
+
+        .back:hover {
+            color: #fff;
+        }
+
+        .back:focus-visible,
+        .follow:focus-visible,
+        .release-button:focus-visible,
+        .alert-options input:focus-visible,
+        .alert-options label:focus-within {
+            outline: 3px solid #c4b5fd;
+            outline-offset: 3px;
         }
 
         .artist-header {
-            text-align: center;
-            padding: 30px 0;
+            display: grid;
+            grid-template-columns: 160px minmax(0, 1fr);
+            align-items: center;
+            gap: 28px;
+            padding: 30px;
+            border: 1px solid #30283f;
+            border-radius: 22px;
+            background:
+                radial-gradient(ellipse at top left, rgb(139 92 246 / 12%), transparent 48%),
+                linear-gradient(115deg, #1b1725, #15151c 65%);
+            box-shadow: 0 18px 45px rgb(0 0 0 / 18%);
         }
 
         .artist-image {
             width: 150px;
             height: 150px;
-            margin: auto;
             border-radius: 50%;
             background: linear-gradient(135deg, #8b5cf6, #ec4899);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 55px;
-            margin-bottom: 20px;
+            overflow: hidden;
+            border: 3px solid #8b5cf6;
+            box-shadow: 0 0 0 6px rgb(139 92 246 / 12%);
         }
 
         .artist-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
-
-
-        .artist-header h1 {
-            font-size: 36px;
-            margin-bottom: 8px;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
-        .artist-header p {
+        .artist-header h1 {
+            font-size: clamp(30px, 5vw, 42px);
+            line-height: 1.1;
+            margin-bottom: 12px;
+        }
+
+        .artist-profile-copy {
+            min-width: 0;
+        }
+
+        .artist-type {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 5px 10px;
+            border: 1px solid #49386a;
+            border-radius: 999px;
+            background: #241a3a;
+            color: #d7c5ff;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .artist-bio {
+            max-width: 650px;
+            margin: 14px 0 22px;
             color: #a1a1aa;
-            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .artist-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .artist-controls {
+            min-width: 0;
         }
 
         .follow {
-            border: none;
+            border: 1px solid transparent;
             background: #8b5cf6;
             color: white;
-            padding: 12px 28px;
+            min-height: 46px;
+            padding: 11px 20px;
             border-radius: 25px;
             font-size: 15px;
+            font-weight: 700;
             cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .follow:hover:not(:disabled) {
+            background: #7441df;
+            transform: translateY(-1px);
+        }
+
+        .follow.is-following {
+            background: #201a2c;
+            border-color: #8b5cf6;
+            color: #d7c5ff;
+        }
+
+        .follow.is-alerting {
+            background: #201a2c;
+            border-color: #494052;
+            color: #e4d8ff;
+        }
+
+        .follow.is-alerting[aria-expanded="true"] {
+            border-color: #8b5cf6;
+            color: #d7c5ff;
+        }
+
+        .follow:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        .alert-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+            gap: 8px;
+            margin-top: 14px;
+            padding: 13px 15px 15px;
+            border: 1px solid #30283f;
+            border-radius: 14px;
+            color: #d4d4d8;
+            background: rgb(11 11 15 / 30%);
+        }
+
+        .alert-options[hidden] {
+            display: none;
+        }
+
+        .alert-options legend {
+            padding: 0 7px;
+            color: #e4d8ff;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .alert-options label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 42px;
+            padding: 8px 10px;
+            border: 1px solid transparent;
+            border-radius: 9px;
+            background: #18181f;
+            transition: border-color 0.2s ease, background 0.2s ease;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .alert-options label:hover {
+            border-color: #49386a;
+            background: #201a2c;
+        }
+
+        .alert-options input {
+            width: 17px;
+            height: 17px;
+            flex: 0 0 auto;
+            accent-color: #8b5cf6;
+        }
+
+        .alert-help {
+            margin-top: 10px;
+            color: #a1a1aa;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .profile-followers {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .follower-count {
+            display: inline-block;
+            min-height: 36px;
+            padding: 8px 12px;
+            background: #18181b;
+            border: 1px solid #30283f;
+            border-radius: 20px;
+            color: #c4b5fd;
+            font-size: 14px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .followers-label {
+            color: #71717a;
+            font-size: 12px;
+        }
+
+        .profile-sections {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0 22px;
+        }
+
+        .profile-sections[hidden] {
+            display: none;
         }
 
         .section {
-            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            margin-top: 34px;
         }
 
         .section h2 {
-            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 13px;
+            font-size: 19px;
+            line-height: 1.35;
+        }
+
+        .section-icon {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            flex: 0 0 auto;
+            place-items: center;
+            border: 1px solid #49386a;
+            border-radius: 11px;
+            background: #241a3a;
+            font-size: 16px;
         }
 
         .card {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            align-items: flex-start;
+            min-height: 172px;
+            padding: 22px;
             background: #15151c;
             border: 1px solid #272731;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
+            border-radius: 16px;
+            line-height: 1.55;
+            transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+        }
+
+        .card:hover {
+            border-color: #49386a;
+            background: #17171f;
+            transform: translateY(-2px);
         }
 
         .card h3 {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            font-size: 18px;
         }
 
         .card p {
             color: #a1a1aa;
             font-size: 14px;
+            margin-top: 7px;
+            line-height: 1.55;
         }
 
         .tag {
-            display: inline-block;
-            margin-top: 12px;
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            margin-top: auto;
+            border: 1px solid #49386a;
             padding: 6px 10px;
             border-radius: 20px;
             background: #241a3a;
             color: #b794ff;
-            font-size: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .release-button {
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
+            margin: 14px 0 14px;
+            padding: 9px 13px;
+            border: 1px solid #59417e;
+            border-radius: 10px;
+            color: #d7c5ff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .release-button:hover {
+            border-color: #8b5cf6;
+            background: #241a3a;
+        }
+
+        .release-button[hidden] {
+            display: none;
+        }
+
+        .not-found {
+            margin-top: 14px;
+            color: #fca5a5;
+        }
+
+        @media (max-width: 420px) {
+            .artist-actions {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .artist-actions .follow {
+                width: 100%;
+            }
+
+            .alert-options {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            header {
+                padding: 17px 16px;
+            }
+
+            .container {
+                padding: 24px 16px 44px;
+            }
+
+            .artist-header {
+                grid-template-columns: 1fr;
+                justify-items: center;
+                gap: 20px;
+                padding: 24px 18px;
+                text-align: center;
+            }
+
+            .artist-image {
+                width: 124px;
+                height: 124px;
+            }
+
+            .artist-header h1 {
+                overflow-wrap: anywhere;
+            }
+
+            .artist-bio {
+                margin: 13px auto 18px;
+            }
+
+            .artist-actions {
+                justify-content: center;
+            }
+
+            .alert-options {
+                width: 100%;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                text-align: left;
+            }
+
+            .profile-followers {
+                justify-content: center;
+            }
+
+            .profile-sections {
+                grid-template-columns: 1fr;
+            }
+
+            .section {
+                margin-top: 28px;
+            }
+
+            .card {
+                min-height: 0;
+                padding: 19px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+            }
         }
     </style>
 </head>
@@ -139,170 +467,111 @@
 
     <a class="back" href="index.html">← Back to FANTRACK</a>
 
-    <section class="artist-header">
+    <section class="artist-header" aria-labelledby="artistName">
+        <div class="artist-image" id="artistImage" aria-hidden="true">🎤</div>
 
-        <div
-    class="artist-image"
-    id="artistImage"
-    style="
-        width: 140px;
-        height: 140px;
-        border-radius: 50%;
-        overflow: hidden;
-        margin: 0 auto 20px;
-        border: 3px solid #8b5cf6;
-    "
->
-    🎤
-</div>
+        <div class="artist-profile-copy">
+            <h1 id="artistName">Burna Boy</h1>
+            <p class="artist-type" id="artistType">Afrobeats • Nigeria</p>
+            <p class="artist-bio" id="artistBio">
+                Follow this artist to stay updated on music, events, awards, news and merch.
+            </p>
 
-        <h1 id="artistName">Burna Boy</h1>
+            <div class="artist-controls">
+                <div class="artist-actions">
+                <button class="follow" id="followButton" type="button" aria-pressed="false">
+                    ❤️ Follow Artist
+                </button>
 
-        <p id="artistType">
-        Afrobeats • Nigeria
-    </p>
+                <button
+                    class="follow is-alerting"
+                    id="alertButton"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="alertOptions"
+                    aria-describedby="alertHelp"
+                >
+                    🔔 Get Alerts
+                </button>
+                </div>
 
-    <p id="artistBio" style="color: #aaa; max-width: 600px; margin: 10px auto 20px;">
-    Follow this artist to stay updated on music, events, awards, news and merch.
-</p>
+                <p class="alert-help" id="alertHelp">
+                    Category alerts are delivered only for artists you follow while master alerts are on. Your category choices stay saved when master alerts are paused.
+                </p>
 
-        <div style="
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-">
+                <fieldset class="alert-options" id="alertOptions" aria-describedby="alertHelp" hidden>
+                    <legend>Choose update categories</legend>
+                    <label for="musicAlert"><input type="checkbox" id="musicAlert"> 🎵 New Music</label>
+                    <label for="eventAlert"><input type="checkbox" id="eventAlert"> 🎤 Events</label>
+                    <label for="awardAlert"><input type="checkbox" id="awardAlert"> 🏆 Awards</label>
+                    <label for="newsAlert"><input type="checkbox" id="newsAlert"> 📰 News</label>
+                    <label for="merchAlert"><input type="checkbox" id="merchAlert"> 🛍️ Merch</label>
+                </fieldset>
+            </div>
 
-    <button class="follow" id="followButton">
-        ❤️ Follow Artist
-    </button>
-
-    <button class="follow" id="alertButton">
-        🔔 Get Alerts
-    </button>
-
-</div>
-<div id="alertOptions" style="display: none; margin-top: 15px;">
-
-    <p style="color: #aaa;">Choose your alerts:</p>
-
-    <label>
-        <input type="checkbox" id="musicAlert">
-        🎵 New Music
-    </label>
-
-    <br><br>
-
-    <label>
-        <input type="checkbox" id="eventAlert">
-        🎤 Events
-    </label>
-
-    <br><br>
-
-    <label>
-        <input type="checkbox" id="awardAlert">
-        🏆 Awards
-    </label>
-
-    <br><br>
-
-    <label>
-        <input type="checkbox" id="newsAlert">
-        📰 News
-    </label>
-
-    <br><br>
-
-    <label>
-        <input type="checkbox" id="merchAlert">
-        🛍️ Merch
-    </label>
-
-</div>
-<div
-    id="followerCount"
-    style="
-        display: inline-block;
-        margin-top: 15px;
-        padding: 8px 14px;
-        background: #18181b;
-        border: 1px solid #2a2a2e;
-        border-radius: 20px;
-        color: #aaa;
-        font-size: 14px;
-    "
->
-    👥 0 followers
-</div>
+            <div class="profile-followers">
+                <div class="follower-count" id="followerCount" aria-live="polite">
+                    👥 0 followers
+                </div>
+                <span class="followers-label">Saved on this device</span>
+            </div>
+            <p class="not-found" id="artistNotFound" role="status" hidden></p>
+        </div>
 
     </section>
 
-
-    <section class="section">
-
-        <h2>🎵 Latest Music</h2>
+    <div class="profile-sections" id="profileSections">
+    <section class="section" aria-labelledby="musicSectionTitle">
+        <h2 id="musicSectionTitle"><span class="section-icon" aria-hidden="true">🎵</span>Music Updates</h2>
 
         <div class="card">
             <h3 id="musicTitle">Latest Single</h3>
             <p id="latestMusic">New music from Burna Boy.</p>
-    <p id="trackCount"></p>
+            <p id="trackCount"></p>
 
-    <a id="releaseLink" href="#" target="_blank" class="release-button">
-    🎧 Listen to Release
-</a>
-            <span class="tag">NEW MUSIC</span>
+            <a id="releaseLink" href="#" target="_blank" rel="noopener noreferrer" class="release-button">
+                🎧 Listen to Release
+            </a>
+            <span class="tag">MUSIC UPDATES</span>
         </div>
-
     </section>
 
-
-    <section class="section">
-
-        <h2>🎤 Upcoming Events</h2>
+    <section class="section" aria-labelledby="eventsSectionTitle">
+        <h2 id="eventsSectionTitle"><span class="section-icon" aria-hidden="true">🎤</span>Upcoming Events</h2>
 
         <div class="card">
             <h3 id="eventTitle">Live Tour</h3>
-<p id="upcomingEvent"></p>
-<p id="eventDetails"></p>
-<p id="eventDate"></p>
-<p id="eventLocation"></p>
-<a id="eventLink" href="#" target="_blank" class="release-button">
-    🎟️ Get Tickets
-</a>
-<span class="tag">TOUR</span>
+            <p id="eventDetails"></p>
+            <p id="eventDate"></p>
+            <p id="eventLocation"></p>
+            <a id="eventLink" href="#" target="_blank" rel="noopener noreferrer" class="release-button">
+                🎟️ Get Tickets
+            </a>
+            <span class="tag">EVENTS</span>
         </div>
-
     </section>
 
-
-    <section class="section">
-
-        <h2>🏆 Awards</h2>
-
+    <section class="section" aria-labelledby="awardsSectionTitle">
+        <h2 id="awardsSectionTitle"><span class="section-icon" aria-hidden="true">🏆</span>Awards</h2>
         <div class="card">
             <h3>Award Nomination</h3>
             <p id="awardInfo">Latest award nomination and recognition.</p>
             <span class="tag">AWARDS</span>
         </div>
-
     </section>
 
-
-    <section class="section">
-
-        <h2>👕 Merch</h2>
-
+    <section class="section" aria-labelledby="merchSectionTitle">
+        <h2 id="merchSectionTitle"><span class="section-icon" aria-hidden="true">👕</span>Merch</h2>
         <div class="card">
             <h3>Official Merchandise</h3>
             <p id="merchInfo">Latest official artist merchandise.</p>
             <span class="tag">MERCH</span>
         </div>
-
     </section>
+    </div>
 
 </main>
+<script src="fantrack-state.js"></script>
 <script>
     const artistData = {
         "burna-boy": {
@@ -705,9 +974,11 @@ merch: {
     const artistName = document.getElementById("artistName");
     const artistType = document.getElementById("artistType");
     const artistImage = document.getElementById("artistImage");
+    const artistBio = document.getElementById("artistBio");
+    const artistNotFound = document.getElementById("artistNotFound");
+    const profileSections = document.getElementById("profileSections");
     const latestMusic = document.getElementById("latestMusic");
     const musicTitle = document.getElementById("musicTitle");
-    const upcomingEvent = document.getElementById("upcomingEvent");
     const awardInfo = document.getElementById("awardInfo");
     const merchInfo = document.getElementById("merchInfo");
     const trackCount = document.getElementById("trackCount");
@@ -720,164 +991,139 @@ merch: {
     const alertButton = document.getElementById("alertButton");
     const followButton = document.getElementById("followButton");
     const followerCount = document.getElementById("followerCount");
-    
 
     if (data) {
         artistName.textContent = data.name;
         artistType.textContent = data.type;
         if (data.image) {
-
-    artistImage.innerHTML =
-        `<img src="${data.image}" alt="${data.name}">`;
-
-} else {
-
-    artistImage.innerHTML = "🎤";
-
-}
+            const image = document.createElement("img");
+            image.src = data.image;
+            image.alt = "";
+            artistImage.replaceChildren(image);
+        }
         latestMusic.textContent =
-    data.music.title + " • " +
-    data.music.type + " • " +
-    data.music.year;
-    
-    trackCount.textContent = data.music.tracks + " tracks";
-    releaseLink.href = data.music.link;
-    eventTitle.textContent = data.event.title;
-    eventDetails.textContent = data.event.details;
-    eventDate.textContent = "📅 " + data.event.date;
-    eventLocation.textContent = "📍 " + data.event.location;
-    eventLink.href = data.event.link;
-    awardInfo.textContent = data.award;
-    merchInfo.innerHTML = `
-    <a href="${data.merch.link}" target="_blank" class="release-button">
-        🛍️ Visit Official Merch
-    </a>
-`;
-    musicTitle.textContent = "Latest Release";
-    document.title = data.name + " | FANTRACK";
-    }
+            data.music.title + " • " +
+            data.music.type + " • " +
+            data.music.year;
 
-    const followed = localStorage.getItem("followed_" + currentArtist);
-
-    if (followed === "true") {
-        followButton.textContent = "✓ Following";
-    }
-    if (followed === "true") {
-
-    const savedFollowers =
-        localStorage.getItem("followers_" + currentArtist);
-
-    const count =
-        savedFollowers === null
-            ? 1
-            : Number(savedFollowers);
-
-    if (savedFollowers === null) {
-        localStorage.setItem(
-            "followers_" + currentArtist,
-            count
-        );
-    }
-
-    followerCount.textContent =
-        "👥 " + count + " followers";
-}
-    const alerts = localStorage.getItem("alerts_" + currentArtist);
-
-    if (alerts === "true") {
-        alertButton.textContent = "🔔 Alerts On";
-    }
-
-    followButton.addEventListener("click", function () {
-    const isFollowing =
-        localStorage.getItem("followed_" + currentArtist) === "true";
-
-    if (isFollowing) {
-        localStorage.removeItem("followed_" + currentArtist);
-        followButton.textContent = "❤️ Follow Artist";
-    } else {
-        localStorage.setItem("followed_" + currentArtist, "true");
-        followButton.textContent = "✓ Following";
-    }
-
-    let followers =
-    Number(localStorage.getItem("followers_" + currentArtist)) || 0;
-
-if (localStorage.getItem("followed_" + currentArtist) === "true") {
-
-    followers++;
-
-} else {
-
-    followers = Math.max(0, followers - 1);
-
-}
-
-localStorage.setItem(
-    "followers_" + currentArtist,
-    followers
-);
-
-followerCount.textContent =
-    "👥 " + followers + " followers";
-});
-
-    const alertOptions = document.getElementById("alertOptions");
-
-    if (localStorage.getItem("alerts_" + currentArtist) === "true") {
-        alertButton.textContent = "🔔 Alerts On";
-        alertOptions.style.display = "block";
-    } else {
-        alertOptions.style.display = "none";
-    }
-
-    alertButton.addEventListener("click", function () {
-        const alertsOn =
-            localStorage.getItem("alerts_" + currentArtist) === "true";
-
-        if (alertsOn) {
-            localStorage.removeItem("alerts_" + currentArtist);
-            alertButton.textContent = "🔔 Get Alerts";
-            alertOptions.style.display = "none";
+        trackCount.textContent =
+            data.music.tracks + (data.music.tracks === 1 ? " track" : " tracks");
+        musicTitle.textContent = "Latest Release";
+        if (data.music.link !== "#") {
+            releaseLink.href = data.music.link;
         } else {
-            localStorage.setItem("alerts_" + currentArtist, "true");
-            alertButton.textContent = "🔔 Alerts On";
-            alertOptions.style.display = "block";
+            releaseLink.hidden = true;
         }
-    });
-    const alertTypes = [
-    "music",
-    "event",
-    "award",
-    "news",
-    "merch"
-];
 
-alertTypes.forEach(function (type) {
-
-    const checkbox = document.getElementById(type + "Alert");
-
-    checkbox.checked =
-        localStorage.getItem(
-            "alert_" + type + "_" + currentArtist
-        ) === "true";
-
-    checkbox.addEventListener("change", function () {
-
-        if (checkbox.checked) {
-            localStorage.setItem(
-                "alert_" + type + "_" + currentArtist,
-                "true"
-            );
+        eventTitle.textContent = data.event.title;
+        eventDetails.textContent = data.event.details;
+        eventDate.textContent = "📅 " + data.event.date;
+        eventLocation.textContent = "📍 " + data.event.location;
+        if (data.event.link !== "#") {
+            eventLink.href = data.event.link;
         } else {
-            localStorage.removeItem(
-                "alert_" + type + "_" + currentArtist
+            eventLink.hidden = true;
+        }
+
+        awardInfo.textContent = data.award;
+        merchInfo.textContent = data.merch.text;
+        if (data.merch.link !== "#") {
+            const merchLink = document.createElement("a");
+            merchLink.href = data.merch.link;
+            merchLink.target = "_blank";
+            merchLink.rel = "noopener noreferrer";
+            merchLink.className = "release-button";
+            merchLink.textContent = "🛍️ Visit Official Merch";
+            merchInfo.append(" ", merchLink);
+        }
+        document.title = data.name + " | FANTRACK";
+    } else {
+        document.title = "Artist not found | FANTRACK";
+        artistName.textContent = "Artist not found";
+        artistType.hidden = true;
+        artistBio.textContent = "This artist profile is not available in the FANTRACK catalog.";
+        artistNotFound.textContent = "Return to the dashboard to choose an available artist.";
+        artistNotFound.hidden = false;
+        profileSections.hidden = true;
+        followerCount.hidden = true;
+        followButton.disabled = true;
+        alertButton.disabled = true;
+    }
+
+    if (data) {
+        const alertOptions = document.getElementById("alertOptions");
+
+        function updateFollowDisplay(isFollowing) {
+            followButton.textContent = isFollowing
+                ? "✓ Following"
+                : "❤️ Follow Artist";
+            followButton.classList.toggle("is-following", isFollowing);
+            followButton.setAttribute("aria-pressed", String(isFollowing));
+            followButton.setAttribute(
+                "aria-label",
+                isFollowing
+                    ? "Unfollow " + data.name
+                    : "Follow " + data.name
+            );
+            const count = FantrackState.getFollowerCount(currentArtist);
+            followerCount.textContent =
+                "👥 " + count + (count === 1 ? " follower" : " followers");
+            followerCount.setAttribute(
+                "aria-label",
+                count + (count === 1 ? " follower" : " followers") +
+                    " for " + data.name
             );
         }
 
-    });
+        function updateAlertDisplay(alertsEnabled) {
+            alertButton.textContent = alertsEnabled
+                ? "🔔 Alerts On"
+                : "🔔 Get Alerts";
+            alertButton.setAttribute("aria-expanded", String(alertsEnabled));
+            alertButton.setAttribute("aria-pressed", String(alertsEnabled));
+            alertButton.setAttribute(
+                "aria-label",
+                (alertsEnabled ? "Disable alerts for " : "Enable alerts for ") +
+                    data.name
+            );
+            alertOptions.hidden = !alertsEnabled;
+            alertButton.classList.toggle("is-alerting", alertsEnabled);
+        }
 
-});
+        const followed = FantrackState.isFollowing(currentArtist);
+        updateFollowDisplay(followed);
+        updateAlertDisplay(FantrackState.areAlertsEnabled(currentArtist));
+
+        followButton.addEventListener("click", function () {
+            const isNowFollowing = FantrackState.setFollowing(
+                currentArtist,
+                !FantrackState.isFollowing(currentArtist)
+            );
+            updateFollowDisplay(isNowFollowing);
+        });
+
+        alertButton.addEventListener("click", function () {
+            const alertsOn = FantrackState.areAlertsEnabled(currentArtist);
+            const alertsEnabled =
+                FantrackState.setAlertsEnabled(currentArtist, !alertsOn);
+            updateAlertDisplay(alertsEnabled);
+        });
+
+        const alertTypes = ["music", "event", "award", "news", "merch"];
+        alertTypes.forEach(function (type) {
+            const checkbox = document.getElementById(type + "Alert");
+            checkbox.checked =
+                FantrackState.isAlertPreferenceEnabled(currentArtist, type);
+
+            checkbox.addEventListener("change", function () {
+                FantrackState.setAlertPreference(
+                    currentArtist,
+                    type,
+                    checkbox.checked
+                );
+            });
+        });
+    }
 </script>
 </body>
 </html>

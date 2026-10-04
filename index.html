@@ -70,12 +70,89 @@
             outline: none;
         }
 
+        .search:focus-visible,
+        .discovery-controls select:focus-visible,
+        .discovery-controls button:focus-visible,
+        .discovery-follow:focus-visible,
+        .discovery-card-link:focus-visible {
+            outline: 3px solid #c4b5fd;
+            outline-offset: 3px;
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
         .section {
             margin-top: 45px;
         }
 
         .section h2 {
             margin-bottom: 20px;
+        }
+
+        .your-music-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 24px;
+            align-items: center;
+            padding: clamp(20px, 4vw, 30px);
+            border: 1px solid #3a2c55;
+            border-radius: 16px;
+            background: linear-gradient(120deg, #1b1627, #15151c 72%);
+        }
+
+        .your-music-copy {
+            min-width: 0;
+        }
+
+        .your-music-status {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            margin-bottom: 12px;
+            padding: 5px 10px;
+            border: 1px solid #59417e;
+            border-radius: 999px;
+            background: #241a3a;
+            color: #d7c5ff;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .your-music-card h3 {
+            margin-bottom: 9px;
+            font-size: 20px;
+        }
+
+        .your-music-card p {
+            max-width: 680px;
+            color: #c4c4ce;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .your-music-preview {
+            display: grid;
+            gap: 9px;
+            min-width: 180px;
+            color: #a1a1aa;
+            font-size: 13px;
+        }
+
+        .your-music-preview span {
+            padding: 9px 12px;
+            border: 1px solid #30303a;
+            border-radius: 9px;
+            background: #111116;
         }
 
         .artists {
@@ -110,11 +187,11 @@
         }
 
         .artist-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 12px;
-}
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
 
         .artist h3 {
             margin-bottom: 6px;
@@ -123,6 +200,237 @@
         .artist p {
             color: #a1a1aa;
             font-size: 14px;
+        }
+
+        .discovery-controls {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 18px;
+        }
+
+        .discovery-controls label {
+            display: grid;
+            gap: 7px;
+            color: #d4d4d8;
+            font-size: 13px;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .discovery-controls select,
+        .discovery-controls button {
+            min-height: 44px;
+            padding: 10px 12px;
+            border: 1px solid #3f3f46;
+            border-radius: 10px;
+            background: #15151c;
+            color: white;
+            font: inherit;
+        }
+
+        .discovery-controls select {
+            width: 100%;
+        }
+
+        .discovery-controls button {
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .discovery-controls button:hover {
+            border-color: #8b5cf6;
+            background: #241a3a;
+        }
+
+        .discovery-result-count {
+            margin: 0 0 14px;
+            color: #a1a1aa;
+            font-size: 14px;
+        }
+
+        .discovery-card {
+            display: flex;
+            min-width: 0;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .discovery-card-link {
+            display: block;
+            min-width: 0;
+            color: inherit;
+            text-decoration: none;
+            border-radius: 10px;
+        }
+
+        .discovery-card-link:focus-visible {
+            outline: 3px solid #c4b5fd;
+            outline-offset: 3px;
+        }
+
+        .discovery-card .artist-image {
+            overflow: hidden;
+        }
+
+        .discovery-follow {
+            min-height: 44px;
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #59417e;
+            border-radius: 10px;
+            background: #241a3a;
+            color: #e9ddff;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .discovery-follow[aria-pressed="true"] {
+            border-color: #3f3f46;
+            background: #202024;
+            color: #e4e4e7;
+        }
+
+        .discovery-empty {
+            grid-column: 1 / -1;
+        }
+
+        .artist-control-card {
+            min-width: 0;
+        }
+
+        .artist-profile-link {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+            border-radius: 10px;
+        }
+
+        .artist-profile-link:focus-visible,
+        .artist-control-card button:focus-visible,
+        .alert-preferences input:focus-visible,
+        .alert-preferences label:focus-within {
+            outline: 3px solid #c4b5fd;
+            outline-offset: 3px;
+        }
+
+        .artist-profile-link h3 {
+            margin-bottom: 6px;
+        }
+
+        .artist-alert-summary {
+            margin-top: 14px;
+            padding: 8px 10px;
+            border: 1px solid #3f3f46;
+            border-radius: 10px;
+            color: #a1a1aa;
+            font-size: 13px;
+        }
+
+        .artist-alert-summary.is-enabled {
+            border-color: #59417e;
+            background: #201a2c;
+            color: #d7c5ff;
+        }
+
+        .artist-card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .artist-card-actions button {
+            min-height: 40px;
+            flex: 1 1 120px;
+            padding: 9px 11px;
+            border: 1px solid #3f3f46;
+            border-radius: 9px;
+            background: #202024;
+            color: #e4e4e7;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .artist-card-actions button:hover {
+            border-color: #8b5cf6;
+            background: #241a3a;
+        }
+
+        .artist-card-actions .artist-alert-toggle[aria-pressed="true"] {
+            border-color: #59417e;
+            color: #d7c5ff;
+        }
+
+        .artist-card-actions .artist-unfollow {
+            flex-grow: 0;
+            color: #fca5a5;
+        }
+
+        .artist-unfollow:hover {
+            border-color: #ef4444 !important;
+            background: #2a171a !important;
+        }
+
+        .alert-preferences {
+            display: grid;
+            gap: 6px;
+            margin-top: 12px;
+            padding: 10px;
+            border: 1px solid #30283f;
+            border-radius: 10px;
+            background: #111116;
+        }
+
+        .alert-preferences[hidden] {
+            display: none;
+        }
+
+        .alert-preferences legend {
+            padding: 0 5px;
+            color: #c4b5fd;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .alert-preferences label {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-height: 36px;
+            padding: 6px 8px;
+            border-radius: 7px;
+            color: #d4d4d8;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .alert-preferences label:hover {
+            background: #201a2c;
+        }
+
+        .alert-preferences input {
+            width: 17px;
+            height: 17px;
+            accent-color: #8b5cf6;
+        }
+
+        .artist-control-status {
+            min-height: 1.4em;
+            margin-top: 8px;
+            color: #c4b5fd;
+            font-size: 12px;
+        }
+
+        #myArtistsTitle:focus {
+            outline: 2px solid #c4b5fd;
+            outline-offset: 4px;
         }
 
         .updates {
@@ -148,6 +456,21 @@
             font-size: 14px;
         }
 
+        .empty-state {
+            background: #15151c;
+            border: 1px solid #272731;
+            border-radius: 14px;
+            padding: 20px;
+            color: #a1a1aa;
+        }
+
+        .empty-state a {
+            display: inline-block;
+            margin-top: 12px;
+            color: #b794ff;
+            text-decoration: none;
+        }
+
         .tag {
             display: inline-block;
             margin-top: 12px;
@@ -164,6 +487,52 @@
             text-align: center;
             border-top: 1px solid #25252d;
             color: #71717a;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 16px;
+            }
+
+            .container {
+                padding: 28px 16px;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .section {
+                margin-top: 36px;
+            }
+
+            .artist-card-actions button {
+                flex-basis: 100%;
+            }
+
+            .discovery-controls {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .your-music-card {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 18px;
+            }
+
+            .your-music-preview {
+                min-width: 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+            }
         }
     </style>
 </head>
@@ -207,173 +576,86 @@
             music, tours, events, awards, merch and more.
         </p>
 
+        <label class="visually-hidden" for="artistSearch">Search artists by name, genre, or country</label>
         <input
-    class="search"
-    id="artistSearch"
-    type="text"
-    placeholder="🔎 Search for an artist..."
->
-
-<div id="searchResults"></div>
+            class="search"
+            id="artistSearch"
+            type="search"
+            placeholder="🔎 Search artists by name, genre, or country..."
+            autocomplete="off"
+        >
     </section>
 
+    <section class="section" aria-labelledby="yourMusicTitle">
+        <h2 id="yourMusicTitle">Your Music</h2>
+        <div class="your-music-card">
+            <div class="your-music-copy">
+                <span class="your-music-status">Listening insights coming soon</span>
+                <h3>Your listening, all in one place</h3>
+                <p>
+                    Streaming services are not connected to FANTRACK yet, so personal listening data is not available.
+                    In the future, this space is intended for insights like recently played music, top artists and songs,
+                    and listening statistics.
+                </p>
+            </div>
+            <div class="your-music-preview" aria-label="Planned listening insight types">
+                <span>Recently played</span>
+                <span>Top artists &amp; songs</span>
+                <span>Listening statistics</span>
+            </div>
+        </div>
+    </section>
 
     <section class="section">
-
-    <h2>🔥 Popular Artists</h2>
-    <p style="color: #aaa; margin-bottom: 20px;">
-    Discover artists and follow the ones you love.
-</p>
-    <section>
-    <h2>⚡ Latest Updates</h2>
-
-    <p style="color: #aaa; margin-bottom: 20px;">
-        Updates from the artists you follow.
-    </p>
-
-    <div id="latestUpdates"></div>
-</section>
-    <section>
-    <h2>❤️ My Artists</h2>
-
-    <div id="myArtists">
-        <p>No artists followed yet.</p>
-    </div>
-</section>
-
-    <div class="artists">
-
-            <a href="artist.html" style="text-decoration: none; color: inherit;">
-
-    <div class="artist" id="artist-burna-boy">
-
-        <div class="artist-image">
-    <img src="burna-boy.jpg" alt="Burna Boy">
-</div>
-
-        <h3>Burna Boy</h3>
-
-        <p>
-            Afrobeats • Nigeria
-        </p>
-
-    </div>
-
-</a>
-            <a href="artist.html?artist=rema" style="text-decoration: none; color: inherit;">
-    <div class="artist" id="artist-rema">
-
-        <div class="artist-image">
-    <img src="rema.jpg" alt="Rema">
-</div>
-
-        <h3>Rema</h3>
-
-        <p>
-            Afrobeats • Nigeria
-        </p>
-
-    </div>
-
-</a>
-           <a href="artist.html?artist=tems" style="text-decoration: none; color: inherit;">
-    <div class="artist" id="artist-tems">
-        <div class="artist-image">
-    <img src="tems.jpg" alt="Tems">
-</div>
-        <h3>Tems</h3>
-        <p>R&B • Nigeria</p>
-    </div>
-</a>
-            <a href="artist.html?artist=drake" style="text-decoration: none; color: inherit;">
-    <div class="artist" id="artist-drake">
-        <div class="artist-image">
-    <img src="drake.jpg" alt="Drake">
-</div>
-        <h3>Drake</h3>
-        <p>Hip-Hop • Canada</p>
-    </div>
-</a>
-
-<a href="artist.html?artist=wizkid" style="text-decoration: none; color: inherit;">
-    <div class="artist" id="artist-wizkid">
-        <div class="artist-image">
-            <img src="wizkid.jpg" alt="Wizkid">
+        <h2 id="myArtistsTitle" tabindex="-1">❤️ My Artists</h2>
+        <div class="artists" id="myArtists">
+            <div class="empty-state">
+                <p>You haven't followed any artists yet.</p>
+                <a href="#artistDiscovery">Discover artists to get started →</a>
+            </div>
         </div>
-        <h3>Wizkid</h3>
-        <p>Afrobeats • Nigeria</p>
-    </div>
-</a>
-
-<a href="artist.html?artist=davido" style="text-decoration: none; color: inherit;">
-    <div class="artist" id="artist-davido">
-        <div class="artist-image">
-            <img src="davido.jpg" alt="Davido">
-        </div>
-        <h3>Davido</h3>
-        <p>Afrobeats • Nigeria</p>
-    </div>
-</a>
-
-        </div>
-
     </section>
-
 
     <section class="section">
-
-        <h2>📰 Latest Updates</h2>
-
-        <div class="updates">
-
-            <div class="update">
-                <div class="update-title">
-                    🎵 New music released
-                </div>
-
-                <div class="update-info">
-                    Your favorite artist has released a new single.
-                </div>
-
-                <span class="tag">NEW MUSIC</span>
-            </div>
-
-
-            <div class="update">
-                <div class="update-title">
-                    🎤 Tour announcement
-                </div>
-
-                <div class="update-info">
-                    A new tour date has been announced.
-                </div>
-
-                <span class="tag">TOUR</span>
-            </div>
-
-
-            <div class="update">
-                <div class="update-title">
-                    🏆 Award nomination
-                </div>
-
-                <div class="update-info">
-                    An artist has received a new nomination.
-                </div>
-
-                <span class="tag">AWARDS</span>
-            </div>
-
-        </div>
-
+        <h2>⚡ Latest From Your Artists</h2>
+        <p style="color: #aaa; margin-bottom: 20px;">
+            The latest updates from artists you follow.
+        </p>
+        <div class="updates" id="latestUpdates"></div>
     </section>
 
+    <section class="section" id="artistDiscovery">
+        <h2>Explore Artists</h2>
+        <p style="color: #aaa; margin-bottom: 20px;">
+            Browse the full artist catalog by name, genre, or country.
+        </p>
+        <div class="discovery-controls" role="group" aria-label="Filter artists">
+            <label for="genreFilter">
+                Genre
+                <select id="genreFilter">
+                    <option value="">All genres</option>
+                </select>
+            </label>
+            <label for="countryFilter">
+                Country
+                <select id="countryFilter">
+                    <option value="">All countries</option>
+                </select>
+            </label>
+            <button id="clearDiscoveryFilters" type="button">Clear search and filters</button>
+        </div>
+        <p id="discoveryResultCount" class="discovery-result-count" role="status" aria-live="polite"></p>
+        <div class="artists" id="artistDirectory" role="region" aria-label="Artist directory results"></div>
+    </section>
 </main>
 
 
 <footer>
     FANTRACK © 2026 — Follow the artists you love.
 </footer>
+<script src="fantrack-state.js"></script>
+<script src="fantrack-artists.js"></script>
+<script src="fantrack-updates.js"></script>
 <script>
     const myArtists = document.getElementById("myArtists");
 
@@ -383,441 +665,518 @@
     const notificationBadge =
     document.getElementById("notificationBadge");
 
+    const latestUpdates =
+        document.getElementById("latestUpdates");
+
     let unreadCount = 0;
 
-    const artists = [
-    {
-        id: "burna-boy",
-        name: "Burna Boy",
-        type: "Afrobeats • Nigeria",
-        music: "Dai Dai"
-    },
-    {
-        id: "rema",
-        name: "Rema",
-        type: "Afrobeats • Nigeria",
-        music: "HEIS"
-    },
-    {
-        id: "tems",
-        name: "Tems",
-        type: "R&B • Nigeria",
-        music: "What You Need"
-    },
-    {
-        id: "drake",
-        name: "Drake",
-        type: "Hip-Hop • Canada",
-        music: "HABIBTI (FOMO)"
-    },
-    {
-        id: "wizkid",
-        name: "Wizkid",
-        type: "Afrobeats • Nigeria",
-        music: "Morayo"
-    },
-    {
-        id: "davido",
-        name: "Davido",
-        type: "Afrobeats • Nigeria",
-        music: "5ive"
-    },
-    {
-        id: "asake",
-        name: "Asake",
-        type: "Afrobeats • Nigeria",
-        music: ""
-    },
-    {
-        id: "ayra-starr",
-        name: "Ayra Starr",
-        type: "Afrobeats • Nigeria",
-        music: ""
-    },
-    {
-        id: "omah-lay",
-        name: "Omah Lay",
-        type: "Afrobeats • Nigeria",
-        music: ""
-    },
-    {
-        id: "fireboy-dml",
-        name: "Fireboy DML",
-        type: "Afrobeats • Nigeria",
-        music: ""
-    },
-    {
-        id: "seyi-vibez",
-        name: "Seyi Vibez",
-        type: "Afrobeats • Nigeria",
-        music: ""
-    },
-    {
-        id: "shallipopi",
-        name: "Shallipopi",
-        type: "Afrobeats • Nigeria",
-        music: ""
-    },
-    {
-        id: "the-weeknd",
-        name: "The Weeknd",
-        type: "R&B • Canada",
-        music: ""
-    },
-    {
-        id: "sza",
-        name: "SZA",
-        type: "R&B • USA",
-        music: ""
-    },
-    {
-        id: "travis-scott",
-        name: "Travis Scott",
-        type: "Hip-Hop • USA",
-        music: ""
-    },
-    {
-        id: "future",
-        name: "Future",
-        type: "Hip-Hop • USA",
-        music: ""
-    }
+    const artists = FantrackArtists;
+
+const artistUpdates = FantrackUpdates.artistUpdates;
+
+const alertTypes = [
+    { id: "music", label: "🎵 Music" },
+    { id: "event", label: "🎤 Events" },
+    { id: "award", label: "🏆 Awards" },
+    { id: "news", label: "📰 News" },
+    { id: "merch", label: "🛍️ Merch" }
 ];
 
-const artistUpdates = {
-    "burna-boy": [
-        {
-            type: "music",
-            title: "Dai Dai",
-            description: "Burna Boy has new music available.",
-            date: "2026",
-            link: "artist.html?artist=burna-boy"
-        },
-        {
-            type: "event",
-            title: "Upcoming Event",
-            description: "Burna Boy has an upcoming live event.",
-            date: "December 30, 2026",
-            link: "artist.html?artist=burna-boy"
-        },
-        {
-            type: "award",
-            title: "Award Update",
-            description: "Burna Boy has new award information.",
-            date: "2026",
-            link: "artist.html?artist=burna-boy"
-        },
-        {
-            type: "news",
-            title: "Artist News",
-            description: "Burna Boy has a new announcement.",
-            date: "2026",
-            link: "artist.html?artist=burna-boy"
-        },
-        {
-            type: "merch",
-            title: "New Merch",
-            description: "Burna Boy has new merchandise available.",
-            date: "2026",
-            link: "artist.html?artist=burna-boy"
-        }
-    ],
+function renderMyArtists() {
+    const followedArtists = FantrackState.getFollowedArtists(artists);
+    myArtists.replaceChildren();
 
-    "rema": [
-        {
-            type: "music",
-            title: "HEIS",
-            description: "Rema's latest album.",
-            date: "2024",
-            link: "artist.html?artist=rema"
-        }
-    ],
+    if (followedArtists.length === 0) {
+        const emptyState = document.createElement("div");
+        emptyState.className = "empty-state";
 
-    "tems": [
-        {
-            type: "music",
-            title: "What You Need",
-            description: "Tems has new music available.",
-            date: "2026",
-            link: "artist.html?artist=tems"
-        }
-    ],
+        const message = document.createElement("p");
+        message.textContent = "You haven't followed any artists yet.";
+        emptyState.appendChild(message);
 
-    "drake": [
-        {
-            type: "music",
-            title: "HABIBTI (FOMO)",
-            description: "Drake has a new music update.",
-            date: "2026",
-            link: "artist.html?artist=drake"
-        }
-    ],
+        const discoverLink = document.createElement("a");
+        discoverLink.href = "#artistDiscovery";
+        discoverLink.textContent = "Discover artists to get started →";
+        emptyState.appendChild(discoverLink);
 
-    "wizkid": [
-        {
-            type: "music",
-            title: "Morayo",
-            description: "Wizkid's latest album.",
-            date: "2024",
-            link: "artist.html?artist=wizkid"
-        }
-    ],
-
-    "davido": [
-        {
-            type: "music",
-            title: "5ive",
-            description: "Davido's latest album.",
-            date: "2025",
-            link: "artist.html?artist=davido"
-        }
-    ]
-};
-
-const followedArtists = artists.filter(function (artist) {
-    return localStorage.getItem("followed_" + artist.id) === "true";
-});
-
-if (followedArtists.length > 0) {
-
-    myArtists.innerHTML = "";
+        myArtists.appendChild(emptyState);
+        return;
+    }
 
     followedArtists.forEach(function (artist) {
+        const card = document.createElement("article");
+        card.className = "artist artist-control-card";
 
-        myArtists.innerHTML += `
-            <a href="artist.html?artist=${artist.id}"
-               style="text-decoration: none; color: inherit;">
+        const profileLink = document.createElement("a");
+        profileLink.className = "artist-profile-link";
+        profileLink.href = "artist.html?artist=" + encodeURIComponent(artist.id);
+        profileLink.setAttribute("aria-label", "View " + artist.name + " profile");
 
-                <div class="artist">
+        const imageContainer = document.createElement("div");
+        imageContainer.className = "artist-image";
+        if (artist.image) {
+            const image = document.createElement("img");
+            image.src = artist.image;
+            image.alt = artist.name;
+            imageContainer.appendChild(image);
+        } else {
+            imageContainer.textContent = "🎤";
+            imageContainer.setAttribute("aria-label", "Artist image unavailable");
+        }
+        profileLink.appendChild(imageContainer);
 
-                    <div class="artist-image">
-                        <img src="${artist.id}.jpg"
-                             alt="${artist.name}">
-                    </div>
+        const name = document.createElement("h3");
+        name.textContent = artist.name;
+        profileLink.appendChild(name);
 
-                    <h3>${artist.name}</h3>
+        const type = document.createElement("p");
+        type.textContent = artist.type;
+        profileLink.appendChild(type);
+        card.appendChild(profileLink);
 
-                    <p>${artist.type}</p>
+        const alertEnabled = FantrackState.areAlertsEnabled(artist.id);
+        const alertSummary = document.createElement("p");
+        alertSummary.className = "artist-alert-summary";
+        alertSummary.classList.toggle("is-enabled", alertEnabled);
+        alertSummary.setAttribute("role", "status");
+        alertSummary.textContent = alertEnabled
+            ? "🔔 Master alerts on"
+            : "🔕 Master alerts off";
+        card.appendChild(alertSummary);
 
-                </div>
+        const actions = document.createElement("div");
+        actions.className = "artist-card-actions";
 
-            </a>
-        `;
+        const masterToggle = document.createElement("button");
+        masterToggle.className = "artist-alert-toggle";
+        masterToggle.type = "button";
+        masterToggle.setAttribute("aria-pressed", String(alertEnabled));
+        masterToggle.setAttribute(
+            "aria-label",
+            (alertEnabled ? "Disable" : "Enable") +
+                " alerts for " + artist.name
+        );
+        masterToggle.textContent = alertEnabled
+            ? "Pause alerts"
+            : "Enable alerts";
+        masterToggle.addEventListener("click", function () {
+            const enabled = FantrackState.setAlertsEnabled(
+                artist.id,
+                !FantrackState.areAlertsEnabled(artist.id)
+            );
+            alertSummary.classList.toggle("is-enabled", enabled);
+            alertSummary.textContent = enabled
+                ? "🔔 Master alerts on"
+                : "🔕 Master alerts off";
+            masterToggle.setAttribute("aria-pressed", String(enabled));
+            masterToggle.setAttribute(
+                "aria-label",
+                (enabled ? "Disable" : "Enable") +
+                    " alerts for " + artist.name
+            );
+            masterToggle.textContent = enabled
+                ? "Pause alerts"
+                : "Enable alerts";
+            refreshPersonalizedFeed();
+            cardStatus.textContent = enabled
+                ? "Alerts enabled for " + artist.name + "."
+                : "Alerts paused for " + artist.name + ". Category choices are saved.";
+        });
+        actions.appendChild(masterToggle);
 
+        const preferencesId = "artist-alert-options-" + artist.id;
+        const preferencesToggle = document.createElement("button");
+        preferencesToggle.className = "artist-preferences-toggle";
+        preferencesToggle.type = "button";
+        preferencesToggle.textContent = "Alert categories";
+        preferencesToggle.setAttribute("aria-expanded", "false");
+        preferencesToggle.setAttribute("aria-controls", preferencesId);
+        actions.appendChild(preferencesToggle);
+
+        const unfollowButton = document.createElement("button");
+        unfollowButton.className = "artist-unfollow";
+        unfollowButton.type = "button";
+        unfollowButton.textContent = "Unfollow";
+        unfollowButton.setAttribute("aria-label", "Unfollow " + artist.name);
+        actions.appendChild(unfollowButton);
+        card.appendChild(actions);
+
+        const cardStatus = document.createElement("p");
+        cardStatus.className = "artist-control-status";
+        cardStatus.setAttribute("role", "status");
+        cardStatus.setAttribute("aria-live", "polite");
+        card.appendChild(cardStatus);
+
+        const preferences = document.createElement("fieldset");
+        preferences.className = "alert-preferences";
+        preferences.id = preferencesId;
+        preferences.setAttribute(
+            "aria-label",
+            artist.name + " alert categories"
+        );
+        preferences.hidden = true;
+
+        const preferencesLegend = document.createElement("legend");
+        preferencesLegend.textContent = "Alert categories";
+        preferences.appendChild(preferencesLegend);
+
+        const preferencesHelp = document.createElement("p");
+        preferencesHelp.className = "artist-control-status";
+        preferencesHelp.textContent =
+            "Category alerts apply while master alerts are on.";
+        preferences.appendChild(preferencesHelp);
+
+        alertTypes.forEach(function (alertType) {
+            const label = document.createElement("label");
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = FantrackState.isAlertPreferenceEnabled(
+                artist.id,
+                alertType.id
+            );
+            checkbox.setAttribute(
+                "aria-label",
+                alertType.label.replace(/^[^ ]+ /, "") +
+                    " alerts for " + artist.name
+            );
+            checkbox.addEventListener("change", function () {
+                FantrackState.setAlertPreference(
+                    artist.id,
+                    alertType.id,
+                    checkbox.checked
+                );
+                refreshPersonalizedFeed();
+                cardStatus.textContent =
+                    alertType.label.replace(/^[^ ]+ /, "") +
+                    " alerts " + (checkbox.checked ? "enabled" : "disabled") +
+                    " for " + artist.name + ".";
+            });
+
+            const labelText = document.createElement("span");
+            labelText.textContent = alertType.label;
+            label.append(checkbox, labelText);
+            preferences.appendChild(label);
+        });
+        card.appendChild(preferences);
+
+        preferencesToggle.addEventListener("click", function () {
+            const isExpanded =
+                preferencesToggle.getAttribute("aria-expanded") === "true";
+            preferencesToggle.setAttribute("aria-expanded", String(!isExpanded));
+            preferencesToggle.textContent = isExpanded
+                ? "Alert categories"
+                : "Hide categories";
+            preferences.hidden = isExpanded;
+        });
+
+        unfollowButton.addEventListener("click", function () {
+            FantrackState.setFollowing(artist.id, false);
+            renderMyArtists();
+            refreshPersonalizedFeed();
+            const nextProfile = myArtists.querySelector(".artist-profile-link");
+            (nextProfile || artistSearch).focus();
+        });
+
+        myArtists.appendChild(card);
     });
 }
+
+renderMyArtists();
 
 const artistSearch =
     document.getElementById("artistSearch");
 
-const searchResults =
-    document.getElementById("searchResults");
+const genreFilter =
+    document.getElementById("genreFilter");
 
-artistSearch.addEventListener("input", function () {
+const countryFilter =
+    document.getElementById("countryFilter");
 
-    const searchText =
-        artistSearch.value.toLowerCase().trim();
+const clearDiscoveryFilters =
+    document.getElementById("clearDiscoveryFilters");
 
-    searchResults.innerHTML = "";
+const discoveryResultCount =
+    document.getElementById("discoveryResultCount");
 
-    if (searchText === "") {
+const artistDirectory =
+    document.getElementById("artistDirectory");
+
+function getArtistLocationDetails(artist) {
+    const details = artist.type.split("•").map(function (value) {
+        return value.trim();
+    });
+
+    return {
+        genre: details[0] || "",
+        country: details[1] || ""
+    };
+}
+
+function populateDiscoveryFilters() {
+    const genres = new Set();
+    const countries = new Set();
+
+    artists.forEach(function (artist) {
+        const details = getArtistLocationDetails(artist);
+        if (details.genre) {
+            genres.add(details.genre);
+        }
+        if (details.country) {
+            countries.add(details.country);
+        }
+    });
+
+    Array.from(genres).sort().forEach(function (genre) {
+        const option = document.createElement("option");
+        option.value = genre;
+        option.textContent = genre;
+        genreFilter.appendChild(option);
+    });
+
+    Array.from(countries).sort().forEach(function (country) {
+        const option = document.createElement("option");
+        option.value = country;
+        option.textContent = country;
+        countryFilter.appendChild(option);
+    });
+}
+
+function renderArtistDirectory() {
+    const searchText = artistSearch.value.trim().toLowerCase();
+    const selectedGenre = genreFilter.value;
+    const selectedCountry = countryFilter.value;
+    const matchingArtists = artists.filter(function (artist) {
+        const details = getArtistLocationDetails(artist);
+        const matchesSearch = !searchText ||
+            [artist.name, details.genre, details.country]
+                .some(function (value) {
+                    return value.toLowerCase().includes(searchText);
+                });
+        const matchesGenre = !selectedGenre ||
+            details.genre === selectedGenre;
+        const matchesCountry = !selectedCountry ||
+            details.country === selectedCountry;
+
+        return matchesSearch && matchesGenre && matchesCountry;
+    });
+
+    artistDirectory.replaceChildren();
+    discoveryResultCount.textContent =
+        "Showing " + matchingArtists.length + " of " + artists.length + " artists";
+
+    if (matchingArtists.length === 0) {
+        const emptyState = document.createElement("div");
+        emptyState.className = "empty-state discovery-empty";
+        emptyState.setAttribute("role", "status");
+
+        const message = document.createElement("p");
+        message.textContent = "No artists match your search and filters.";
+        emptyState.appendChild(message);
+        artistDirectory.appendChild(emptyState);
         return;
     }
 
-    let foundArtist = false;
+    matchingArtists.forEach(function (artist) {
+        const card = document.createElement("article");
+        card.className = "artist discovery-card";
+        card.id = "artist-" + artist.id;
 
-    artists.forEach(function (artist) {
+        const profileLink = document.createElement("a");
+        profileLink.className = "discovery-card-link";
+        profileLink.href =
+            "artist.html?artist=" + encodeURIComponent(artist.id);
+        profileLink.setAttribute(
+            "aria-label",
+            "View " + artist.name + " profile"
+        );
 
-        if (artist.name.toLowerCase().includes(searchText)) {
+        const imageContainer = document.createElement("div");
+        imageContainer.className = "artist-image";
+        if (artist.image) {
+            const image = document.createElement("img");
+            image.src = artist.image;
+            image.alt = artist.name;
+            imageContainer.appendChild(image);
+        } else {
+            imageContainer.textContent = "🎤";
+            imageContainer.setAttribute(
+                "aria-label",
+                "Artist image unavailable"
+            );
+        }
+        profileLink.appendChild(imageContainer);
 
-            foundArtist = true;
+        const name = document.createElement("h3");
+        name.textContent = artist.name;
+        profileLink.appendChild(name);
 
-            searchResults.innerHTML += `
-                <a
-                    href="artist.html?artist=${artist.id}"
-                    style="
-                        display: block;
-                        padding: 15px;
-                        margin-top: 10px;
-                        background: #15151c;
-                        border: 1px solid #272731;
-                        border-radius: 12px;
-                        color: white;
-                        text-decoration: none;
-                    "
-                >
-                    🎤 ${artist.name}
+        const type = document.createElement("p");
+        type.textContent = artist.type;
+        profileLink.appendChild(type);
+        card.appendChild(profileLink);
 
-                    <span style="color: #aaa; margin-left: 8px;">
-                        ${artist.type}
-                    </span>
+        const followButton = document.createElement("button");
+        followButton.className = "discovery-follow";
+        followButton.type = "button";
 
-                </a>
-            `;
-
+        function updateFollowButton(isFollowing) {
+            followButton.textContent = isFollowing ? "Following" : "Follow";
+            followButton.setAttribute("aria-pressed", String(isFollowing));
+            followButton.setAttribute(
+                "aria-label",
+                (isFollowing ? "Unfollow " : "Follow ") + artist.name
+            );
         }
 
+        updateFollowButton(FantrackState.isFollowing(artist.id));
+        followButton.addEventListener("click", function () {
+            const isFollowing = FantrackState.setFollowing(
+                artist.id,
+                !FantrackState.isFollowing(artist.id)
+            );
+            updateFollowButton(isFollowing);
+            renderMyArtists();
+            refreshPersonalizedFeed();
+        });
+        card.appendChild(followButton);
+
+        artistDirectory.appendChild(card);
     });
+}
 
-    if (!foundArtist) {
+populateDiscoveryFilters();
+renderArtistDirectory();
 
-        searchResults.innerHTML = `
-            <div
-                style="
-                    padding: 20px;
-                    margin-top: 10px;
-                    background: #15151c;
-                    border: 1px solid #272731;
-                    border-radius: 12px;
-                    color: #aaa;
-                    text-align: center;
-                "
-            >
-                🔎 No artists found
-            </div>
-        `;
-
-    }
-
-});
-const followedForFeed = artists.filter(function (artist) {
-
-    return localStorage.getItem(
-        "followed_" + artist.id
-    ) === "true";
-
+artistSearch.addEventListener("input", renderArtistDirectory);
+genreFilter.addEventListener("change", renderArtistDirectory);
+countryFilter.addEventListener("change", renderArtistDirectory);
+clearDiscoveryFilters.addEventListener("click", function () {
+    artistSearch.value = "";
+    genreFilter.value = "";
+    countryFilter.value = "";
+    renderArtistDirectory();
+    artistSearch.focus();
 });
 
-
-followedForFeed.forEach(function (artist) {
-
-    const updates =
-        artistUpdates[artist.id] || [];
-
-    updates.forEach(function (update) {
-
-        const alertEnabled =
-            localStorage.getItem(
-                "alert_" +
-                update.type +
-                "_" +
-                artist.id
-            ) === "true";
-
-        if (!alertEnabled) {
-            return;
-        }
-
-
-        const isRead =
-            localStorage.getItem(
-                "read_" +
-                artist.id +
-                "_" +
-                update.type +
-                "_" +
-                update.title
-            ) === "true";
-
-
-        if (!isRead) {
-            unreadCount++;
-        }
-
+function getUpdateDetailUrl(artistId, update) {
+    const params = new URLSearchParams({
+        artist: artistId,
+        type: update.type,
+        title: update.title
     });
+    return "update.html?" + params.toString();
+}
 
-});
+function refreshPersonalizedFeed() {
+    const followedForFeed = FantrackState.getFollowedArtists(artists);
+    latestUpdates.replaceChildren();
+    unreadCount = FantrackState.getUnreadCount(artists, artistUpdates);
 
-if (followedForFeed.length === 0) {
+    if (followedForFeed.length === 0) {
+        const emptyState = document.createElement("div");
+        emptyState.className = "empty-state";
 
-    latestUpdates.innerHTML = `
-        <div class="notification">
-            <h3>❤️ Follow an artist</h3>
-            <p>
-                Follow your favorite artists to see their latest updates here.
-            </p>
-        </div>
-    `;
+        const heading = document.createElement("h3");
+        heading.textContent = "❤️ Your feed starts with a follow";
+        emptyState.appendChild(heading);
 
-} else {
+        const message = document.createElement("p");
+        message.textContent =
+            "Follow artists to see their new music, events, news and more here.";
+        emptyState.appendChild(message);
 
-    followedForFeed.forEach(function (artist) {
+        const discoverLink = document.createElement("a");
+        discoverLink.href = "#artistDiscovery";
+        discoverLink.textContent = "Explore the artist catalog →";
+        emptyState.appendChild(discoverLink);
 
-        const updates = artistUpdates[artist.id] || [];
+        latestUpdates.appendChild(emptyState);
+    } else {
+        let updateCount = 0;
 
-        updates.forEach(function (update) {
+        followedForFeed.forEach(function (artist) {
+            const updates = artistUpdates[artist.id] || [];
 
-            let icon = "⚡";
+            updates.forEach(function (update) {
+                let icon = "⚡";
 
-            if (update.type === "music") {
-                icon = "🎵";
-            }
+                if (update.type === "music") {
+                    icon = "🎵";
+                }
 
-            if (update.type === "event") {
-                icon = "🎤";
-            }
+                if (update.type === "event") {
+                    icon = "🎤";
+                }
 
-            if (update.type === "award") {
-                icon = "🏆";
-            }
+                if (update.type === "award") {
+                    icon = "🏆";
+                }
 
-            if (update.type === "news") {
-                icon = "📰";
-            }
+                if (update.type === "news") {
+                    icon = "📰";
+                }
 
-            if (update.type === "merch") {
-                icon = "🛍️";
-            }
+                if (update.type === "merch") {
+                    icon = "🛍️";
+                }
 
-            latestUpdates.innerHTML += `
- <div
-    class="notification"
-    onclick="window.location.href='${update.link}'"
-    style="cursor: pointer;"
->
-                    <h3>
-                        ${icon} ${artist.name} — ${update.title}
-                    </h3>
+                const card = document.createElement("article");
+                card.className = "update";
 
-                    <p>
-                        ${update.description}
-                    </p>
+                const title = document.createElement("div");
+                title.className = "update-title";
+                title.textContent = icon + " " + artist.name + " — " + update.title;
+                card.appendChild(title);
 
-                    <p style="color: #666;">
-                        ${update.date}
-                    </p>
+                const description = document.createElement("div");
+                description.className = "update-info";
+                description.textContent = update.description;
+                card.appendChild(description);
 
-                    <a href="${update.link}"
-                       style="color: #8b5cf6; text-decoration: none;">
-                        View Update →
-                    </a>
+                const date = document.createElement("p");
+                date.className = "update-info";
+                date.style.marginTop = "8px";
+                date.textContent = update.date;
+                card.appendChild(date);
 
-                    <span class="tag">
-                        ${update.type.toUpperCase()}
-                    </span>
+                const updateLink = document.createElement("a");
+                updateLink.href = getUpdateDetailUrl(artist.id, update);
+                updateLink.textContent = "View Update →";
+                updateLink.style.cssText =
+                    "display: inline-block; margin-top: 12px; color: #8b5cf6; text-decoration: none;";
+                card.appendChild(updateLink);
 
-                </div>
-            `;
+                const tag = document.createElement("span");
+                tag.className = "tag";
+                tag.textContent = update.type.toUpperCase();
+                card.appendChild(tag);
 
+                latestUpdates.appendChild(card);
+                updateCount++;
+            });
         });
 
-    });
+        if (updateCount === 0) {
+            const emptyState = document.createElement("div");
+            emptyState.className = "empty-state";
+            const message = document.createElement("p");
+            message.textContent =
+                "Your followed artists don't have updates listed yet. Check back soon.";
+            emptyState.appendChild(message);
+            latestUpdates.appendChild(emptyState);
+        }
+    }
 
+    if (unreadCount > 0) {
+        notificationBadge.textContent = unreadCount;
+        notificationBadge.style.display = "inline-block";
+    } else {
+        notificationBadge.textContent = "";
+        notificationBadge.style.display = "none";
+    }
 }
-if (unreadCount > 0) {
 
-    notificationBadge.textContent =
-        unreadCount;
-
-    notificationBadge.style.display =
-        "inline-block";
-
-} else {
-
-    notificationBadge.style.display =
-        "none";
-
-}
+refreshPersonalizedFeed();
 </script>
 </body>
 </html>
