@@ -3,7 +3,7 @@
 const http = require("node:http");
 const artists = require("../fantrack-artists.js");
 const { artistUpdates } = require("../fantrack-updates.js");
-const { query } = require("./db/connection.js");
+const { query, checkConnection } = require("./db/connection.js");
 
 const port = Number(process.env.PORT || 3000);
 const artistOrder = new Map(artists.map((artist, index) => [artist.id, index]));
@@ -232,6 +232,11 @@ async function handleRequest(request, response) {
         if (request.method !== "GET") {
             sendMethodNotAllowed(response, "GET");
             return;
+        }
+        try {
+            await checkConnection();
+        } catch (error) {
+            throw new DatabaseQueryError(error);
         }
         sendJson(response, 200, {
             success: true,
