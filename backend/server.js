@@ -3,29 +3,24 @@
 const http = require("node:http");
 const artists = require("../fantrack-artists.js");
 const { artistUpdates } = require("../fantrack-updates.js");
+const { query } = require("./db/connection.js");
 
 const port = Number(process.env.PORT || 3000);
-const artistsById = new Map(artists.map((artist) => [artist.id, artist]));
+const artistOrder = new Map(artists.map((artist, index) => [artist.id, index]));
+const updateOrder = new Map(
+    Object.entries(artistUpdates).flatMap(([artistId, updates]) =>
+        updates.map((update, index) => [
+            JSON.stringify([artistId, update.type, update.title]),
+            index
+        ])
+    ).map(([key], index) => [key, index])
+);
 
-function createUpdateId(artistId, update) {
+function createUpdateId(artistId, type, title) {
     return Buffer.from(
-        JSON.stringify([artistId, update.type, update.title])
+        JSON.stringify([artistId, type, title])
     ).toString("base64url");
 }
-
-const updates = Object.entries(artistUpdates).flatMap(
-    ([artistId, artistRecords]) => artistRecords.map((update) => ({
-        id: createUpdateId(artistId, update),
-        artistId,
-        artistName: artistsById.get(artistId).name,
-        type: update.type,
-        title: update.title,
-        description: update.description,
-        date: update.date,
-        link: update.link
-    }))
-);
-const updatesById = new Map(updates.map((update) => [update.id, update]));
 
 function sendJson(response, statusCode, body, headers = {}) {
     response.writeHead(statusCode, {
@@ -59,7 +54,145 @@ function decodeRouteId(encodedId, response) {
     }
 }
 
-const server = http.createServer((request, response) => {
+function sendNotFound(response) {
+    sendJson(response, 404, {
+        success: false,
+        error: "Not found"
+    });
+}
+
+function sendServiceUnavailable(response) {
+    sendJson(response, 503, {
+        success: false,
+        error: "Service unavailable"
+    });
+}
+
+function mapArtist(row) {
+    const artist = {
+        id: row.id,
+        name: row.name,
+        type: row.type,
+        music: row.music
+    };
+    if (row.image !== null) {
+        artist.image = row.image;
+    }
+    return artist;
+}
+
+function parsePublicUpdateId(id) {
+    try {
+        const identity = JSON.parse(
+            Buffer.from(id, "base64url").toString("utf8")
+        );
+        if (
+            !Array.isArray(identity) ||
+            identity.length !== 3 ||
+            identity.some((value) => typeof value !== "string") ||
+            createUpdateId(...identity) !== id
+        ) {
+            return null;
+        }
+        return identity;
+    } catch {
+        return null;
+    }
+}
+
+function compareArtists(left, right) {
+    const leftOrder = artistOrder.get(left.id);
+    const rightOrder = artistOrder.get(right.id);
+    if (leftOrder !== undefined && rightOrder !== undefined) {
+        return leftOrder - rightOrder;
+    }
+    if (leftOrder !== undefined) {
+        return -1;
+    }
+    if (rightOrder !== undefined) {
+        return 1;
+    }
+    return left.id.localeCompare(right.id);
+}
+
+function compareUpdates(left, right) {
+    const leftKey = JSON.stringify([left.artistId, left.type, left.title]);
+    const rightKey = JSON.stringify([right.artistId, right.type, right.title]);
+    const leftOrder = updateOrder.get(leftKey);
+    const rightOrder = updateOrder.get(rightKey);
+    if (leftOrder !== undefined && rightOrder !== undefined) {
+        return leftOrder - rightOrder;
+    }
+    if (leftOrder !== undefined) {
+        return -1;
+    }
+    if (rightOrder !== undefined) {
+        return 1;
+    }
+    return leftKey.localeCompare(rightKey);
+}
+
+function mapUpdate(row) {
+    return {
+        id: createUpdateId(row.artistId, row.type, row.title),
+        artistId: row.artistId,
+        artistName: row.artistName,
+        type: row.type,
+        title: row.title,
+        description: row.description,
+        date: row.date,
+        link: row.link
+    };
+}
+
+async function getArtists() {
+    const result = await query(
+        "SELECT id, name, type, music, image FROM artists"
+    );
+    return result.rows.map(mapArtist).sort(compareArtists);
+}
+
+async function getArtist(id) {
+    const result = await query(
+        "SELECT id, name, type, music, image FROM artists WHERE id = $1",
+        [id]
+    );
+    return result.rows[0] ? mapArtist(result.rows[0]) : null;
+}
+
+async function getUpdates() {
+    const result = await query(
+        `SELECT u.artist_id AS "artistId",
+                a.name AS "artistName",
+                u.type,
+                u.title,
+                u.description,
+                u.date_label AS date,
+                u.link
+         FROM artist_updates AS u
+         JOIN artists AS a ON a.id = u.artist_id`
+    );
+    return result.rows.map(mapUpdate).sort(compareUpdates);
+}
+
+async function getUpdate(identity) {
+    const result = await query(
+        `SELECT u.artist_id AS "artistId",
+                a.name AS "artistName",
+                u.type,
+                u.title,
+                u.description,
+                u.date_label AS date,
+                u.link
+         FROM artist_updates AS u
+         JOIN artists AS a ON a.id = u.artist_id
+         WHERE u.artist_id = $1 AND u.type = $2 AND u.title = $3`,
+        identity
+    );
+    return result.rows[0] ? mapUpdate(result.rows[0]) : null;
+}
+
+async function handleRequest(request, response) {
     let requestUrl;
 
     try {
@@ -90,10 +223,8 @@ const server = http.createServer((request, response) => {
             sendMethodNotAllowed(response, "GET");
             return;
         }
-        sendJson(response, 200, {
-            success: true,
-            data: artists
-        });
+        const data = await getArtists();
+        sendJson(response, 200, { success: true, data });
         return;
     }
 
@@ -107,12 +238,9 @@ const server = http.createServer((request, response) => {
         if (artistId === null) {
             return;
         }
-        const artist = artistsById.get(artistId);
+        const artist = await getArtist(artistId);
         if (!artist) {
-            sendJson(response, 404, {
-                success: false,
-                error: "Not found"
-            });
+            sendNotFound(response);
             return;
         }
         sendJson(response, 200, {
@@ -127,10 +255,8 @@ const server = http.createServer((request, response) => {
             sendMethodNotAllowed(response, "GET");
             return;
         }
-        sendJson(response, 200, {
-            success: true,
-            data: updates
-        });
+        const data = await getUpdates();
+        sendJson(response, 200, { success: true, data });
         return;
     }
 
@@ -140,16 +266,18 @@ const server = http.createServer((request, response) => {
             sendMethodNotAllowed(response, "GET");
             return;
         }
-        const updateId = decodeRouteId(updateRoute[1], response);
-        if (updateId === null) {
+        const encodedUpdateId = decodeRouteId(updateRoute[1], response);
+        if (encodedUpdateId === null) {
             return;
         }
-        const update = updatesById.get(updateId);
+        const identity = parsePublicUpdateId(encodedUpdateId);
+        if (!identity) {
+            sendNotFound(response);
+            return;
+        }
+        const update = await getUpdate(identity);
         if (!update) {
-            sendJson(response, 404, {
-                success: false,
-                error: "Not found"
-            });
+            sendNotFound(response);
             return;
         }
         sendJson(response, 200, {
@@ -159,9 +287,12 @@ const server = http.createServer((request, response) => {
         return;
     }
 
-    sendJson(response, 404, {
-        success: false,
-        error: "Not found"
+    sendNotFound(response);
+}
+
+const server = http.createServer((request, response) => {
+    handleRequest(request, response).catch(() => {
+        sendServiceUnavailable(response);
     });
 });
 
