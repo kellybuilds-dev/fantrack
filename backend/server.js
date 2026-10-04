@@ -68,6 +68,29 @@ function sendServiceUnavailable(response) {
     });
 }
 
+function sendInternalServerError(response) {
+    sendJson(response, 500, {
+        success: false,
+        error: "Internal server error"
+    });
+}
+
+class DatabaseQueryError extends Error {
+    constructor(error) {
+        super("Database query failed");
+        this.name = "DatabaseQueryError";
+        this.code = /^[0-9A-Z]{5}$/.test(error?.code) ? error.code : undefined;
+    }
+}
+
+async function databaseQuery(text, values) {
+    try {
+        return await query(text, values);
+    } catch (error) {
+        throw new DatabaseQueryError(error);
+    }
+}
+
 function mapArtist(row) {
     const artist = {
         id: row.id,
@@ -146,14 +169,14 @@ function mapUpdate(row) {
 }
 
 async function getArtists() {
-    const result = await query(
+    const result = await databaseQuery(
         "SELECT id, name, type, music, image FROM artists"
     );
     return result.rows.map(mapArtist).sort(compareArtists);
 }
 
 async function getArtist(id) {
-    const result = await query(
+    const result = await databaseQuery(
         "SELECT id, name, type, music, image FROM artists WHERE id = $1",
         [id]
     );
@@ -161,7 +184,7 @@ async function getArtist(id) {
 }
 
 async function getUpdates() {
-    const result = await query(
+    const result = await databaseQuery(
         `SELECT u.artist_id AS "artistId",
                 a.name AS "artistName",
                 u.type,
@@ -176,7 +199,7 @@ async function getUpdates() {
 }
 
 async function getUpdate(identity) {
-    const result = await query(
+    const result = await databaseQuery(
         `SELECT u.artist_id AS "artistId",
                 a.name AS "artistName",
                 u.type,
@@ -291,8 +314,21 @@ async function handleRequest(request, response) {
 }
 
 const server = http.createServer((request, response) => {
-    handleRequest(request, response).catch(() => {
-        sendServiceUnavailable(response);
+    handleRequest(request, response).catch((error) => {
+        if (error instanceof DatabaseQueryError) {
+            console.error(
+                "FANTRACK API database query failed:",
+                error.code || "unclassified database error"
+            );
+            sendServiceUnavailable(response);
+            return;
+        }
+
+        console.error(
+            "FANTRACK API unexpected request failure:",
+            error instanceof Error ? error.name : "unknown error"
+        );
+        sendInternalServerError(response);
     });
 });
 
