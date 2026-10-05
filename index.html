@@ -654,8 +654,6 @@
     FANTRACK © 2026 — Follow the artists you love.
 </footer>
 <script src="fantrack-state.js"></script>
-<script src="fantrack-artists.js"></script>
-<script src="fantrack-updates.js"></script>
 <script>
     const myArtists = document.getElementById("myArtists");
 
@@ -669,10 +667,10 @@
         document.getElementById("latestUpdates");
 
     let unreadCount = 0;
-
-    const artists = FantrackArtists;
-
-const artistUpdates = FantrackUpdates.artistUpdates;
+    let artists = [];
+    let artistUpdates = Object.create(null);
+    let artistLoadStatus = "loading";
+    let updateLoadStatus = "loading";
 
 const alertTypes = [
     { id: "music", label: "🎵 Music" },
@@ -683,8 +681,20 @@ const alertTypes = [
 ];
 
 function renderMyArtists() {
-    const followedArtists = FantrackState.getFollowedArtists(artists);
     myArtists.replaceChildren();
+
+    if (artistLoadStatus !== "ready") {
+        const status = document.createElement("p");
+        status.className = "api-state-message";
+        status.setAttribute("role", artistLoadStatus === "error" ? "alert" : "status");
+        status.textContent = artistLoadStatus === "error"
+            ? "Unable to load the artist catalog. Please try again later."
+            : "Loading your artists...";
+        myArtists.appendChild(status);
+        return;
+    }
+
+    const followedArtists = FantrackState.getFollowedArtists(artists);
 
     if (followedArtists.length === 0) {
         const emptyState = document.createElement("div");
@@ -881,8 +891,6 @@ function renderMyArtists() {
     });
 }
 
-renderMyArtists();
-
 const artistSearch =
     document.getElementById("artistSearch");
 
@@ -942,6 +950,21 @@ function populateDiscoveryFilters() {
 }
 
 function renderArtistDirectory() {
+    artistDirectory.replaceChildren();
+    if (artistLoadStatus !== "ready") {
+        discoveryResultCount.textContent = artistLoadStatus === "error"
+            ? "Artist catalog unavailable."
+            : "Loading artist catalog...";
+        const status = document.createElement("p");
+        status.className = "api-state-message";
+        status.setAttribute("role", artistLoadStatus === "error" ? "alert" : "status");
+        status.textContent = artistLoadStatus === "error"
+            ? "Unable to load the artist catalog. Please try again later."
+            : "Loading artists...";
+        artistDirectory.appendChild(status);
+        return;
+    }
+
     const searchText = artistSearch.value.trim().toLowerCase();
     const selectedGenre = genreFilter.value;
     const selectedCountry = countryFilter.value;
@@ -1044,9 +1067,6 @@ function renderArtistDirectory() {
     });
 }
 
-populateDiscoveryFilters();
-renderArtistDirectory();
-
 artistSearch.addEventListener("input", renderArtistDirectory);
 genreFilter.addEventListener("change", renderArtistDirectory);
 countryFilter.addEventListener("change", renderArtistDirectory);
@@ -1068,8 +1088,29 @@ function getUpdateDetailUrl(artistId, update) {
 }
 
 function refreshPersonalizedFeed() {
-    const followedForFeed = FantrackState.getFollowedArtists(artists);
     latestUpdates.replaceChildren();
+    if (artistLoadStatus !== "ready" || updateLoadStatus !== "ready") {
+        unreadCount = 0;
+        notificationBadge.textContent = "";
+        notificationBadge.style.display = "none";
+
+        const status = document.createElement("p");
+        status.className = "api-state-message";
+        status.setAttribute(
+            "role",
+            artistLoadStatus === "error" || updateLoadStatus === "error"
+                ? "alert"
+                : "status"
+        );
+        status.textContent = artistLoadStatus === "error" ||
+            updateLoadStatus === "error"
+            ? "Unable to load personalized updates. Please try again later."
+            : "Loading personalized updates...";
+        latestUpdates.appendChild(status);
+        return;
+    }
+
+    const followedForFeed = FantrackState.getFollowedArtists(artists);
     unreadCount = FantrackState.getUnreadCount(artists, artistUpdates);
 
     if (followedForFeed.length === 0) {
@@ -1176,7 +1217,112 @@ function refreshPersonalizedFeed() {
     }
 }
 
+function isRecord(value, fields) {
+    return value !== null &&
+        typeof value === "object" &&
+        !Array.isArray(value) &&
+        fields.every(function (field) {
+            return typeof value[field] === "string";
+        });
+}
+
+async function loadArtists() {
+    try {
+        const response = await fetch("/api/artists", {
+            headers: { Accept: "application/json" }
+        });
+        if (!response.ok) {
+            throw new Error("Artist API request failed");
+        }
+
+        const result = await response.json();
+        if (
+            result === null ||
+            typeof result !== "object" ||
+            result.success !== true ||
+            !Array.isArray(result.data) ||
+            !result.data.every(function (artist) {
+                return isRecord(artist, ["id", "name", "type", "music"]) &&
+                    (artist.image === undefined ||
+                        typeof artist.image === "string");
+            })
+        ) {
+            throw new Error("Unexpected artist API response");
+        }
+
+        artists = result.data;
+        artistLoadStatus = "ready";
+        populateDiscoveryFilters();
+    } catch {
+        artistLoadStatus = "error";
+    }
+
+    renderMyArtists();
+    renderArtistDirectory();
+    refreshPersonalizedFeed();
+}
+
+async function loadUpdates() {
+    try {
+        const response = await fetch("/api/updates", {
+            headers: { Accept: "application/json" }
+        });
+        if (!response.ok) {
+            throw new Error("Update API request failed");
+        }
+
+        const result = await response.json();
+        if (
+            result === null ||
+            typeof result !== "object" ||
+            result.success !== true ||
+            !Array.isArray(result.data) ||
+            !result.data.every(function (update) {
+                return isRecord(update, [
+                    "id",
+                    "artistId",
+                    "artistName",
+                    "type",
+                    "title",
+                    "description",
+                    "date",
+                    "link"
+                ]);
+            })
+        ) {
+            throw new Error("Unexpected update API response");
+        }
+
+        const groupedUpdates = Object.create(null);
+        result.data.forEach(function (update) {
+            if (!Object.prototype.hasOwnProperty.call(
+                groupedUpdates,
+                update.artistId
+            )) {
+                groupedUpdates[update.artistId] = [];
+            }
+            groupedUpdates[update.artistId].push({
+                type: update.type,
+                title: update.title,
+                description: update.description,
+                date: update.date,
+                link: update.link
+            });
+        });
+        artistUpdates = groupedUpdates;
+        updateLoadStatus = "ready";
+    } catch {
+        updateLoadStatus = "error";
+    }
+
+    refreshPersonalizedFeed();
+}
+
+renderMyArtists();
+renderArtistDirectory();
 refreshPersonalizedFeed();
+loadArtists();
+loadUpdates();
 </script>
 </body>
 </html>
