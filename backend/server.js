@@ -1,6 +1,8 @@
 "use strict";
 
 const http = require("node:http");
+const fs = require("node:fs");
+const path = require("node:path");
 const artists = require("../fantrack-artists.js");
 const { artistUpdates } = require("../fantrack-updates.js");
 const { query, checkConnection } = require("./db/connection.js");
@@ -214,7 +216,63 @@ async function getUpdate(identity) {
     );
     return result.rows[0] ? mapUpdate(result.rows[0]) : null;
 }
+const frontendRoot = path.join(__dirname, "..");
 
+const frontendFiles = new Set([
+    "/",
+    "/index.html",
+    "/artist.html",
+    "/notifications.html",
+    "/update.html",
+    "/fantrack-state.js",
+    "/fantrack-artists.js",
+    "/fantrack-updates.js"
+]);
+
+const contentTypes = {
+    ".html": "text/html; charset=utf-8",
+    ".js": "application/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+    ".svg": "image/svg+xml"
+};
+
+function sendStaticFile(response, pathname) {
+    const requestedPath = pathname === "/" ? "/index.html" : pathname;
+
+    const isAllowedFile =
+        frontendFiles.has(requestedPath) ||
+        /^\/[a-z0-9-]+\.(jpg|jpeg|png|webp)$/i.test(requestedPath);
+
+    if (!isAllowedFile) {
+        return false;
+    }
+
+    const filePath = path.join(frontendRoot, requestedPath.slice(1));
+
+    if (!filePath.startsWith(frontendRoot + path.sep)) {
+        return false;
+    }
+
+    if (!fs.existsSync(filePath)) {
+        return false;
+    }
+
+    const extension = path.extname(filePath).toLowerCase();
+    const contentType =
+        contentTypes[extension] || "application/octet-stream";
+
+    response.writeHead(200, {
+        "Content-Type": contentType
+    });
+
+    fs.createReadStream(filePath).pipe(response);
+
+    return true;
+}
 async function handleRequest(request, response) {
     let requestUrl;
 
@@ -312,6 +370,10 @@ async function handleRequest(request, response) {
             success: true,
             data: update
         });
+        return;
+    }
+
+    if (request.method === "GET" && sendStaticFile(response, requestUrl.pathname)) {
         return;
     }
 
