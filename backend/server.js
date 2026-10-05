@@ -3,11 +3,22 @@
 const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
+const { promisify } = require("node:util");
+const { randomBytes, scrypt } = require("node:crypto");
 const artists = require("../fantrack-artists.js");
 const { artistUpdates } = require("../fantrack-updates.js");
 const { query, checkConnection } = require("./db/connection.js");
 
 const port = Number(process.env.PORT || 3000);
+const scryptAsync = promisify(scrypt);
+const registrationBodyLimit = 8 * 1024;
+const passwordHashParameters = {
+    N: 32768,
+    r: 8,
+    p: 1,
+    keyLength: 64,
+    maxmem: 64 * 1024 * 1024
+};
 const artistOrder = new Map(artists.map((artist, index) => [artist.id, index]));
 const updateOrder = new Map(
     Object.entries(artistUpdates).flatMap(([artistId, updates]) =>
@@ -90,6 +101,143 @@ async function databaseQuery(text, values) {
         return await query(text, values);
     } catch (error) {
         throw new DatabaseQueryError(error);
+    }
+}
+
+function sendBadRequest(response) {
+    sendJson(response, 400, {
+        success: false,
+        error: "Bad request"
+    });
+}
+
+function isJsonContentType(contentType) {
+    return /^application\/json(?:\s*;\s*charset=utf-8)?\s*$/i.test(
+        contentType || ""
+    );
+}
+
+function readJsonBody(request, response) {
+    return new Promise((resolve, reject) => {
+        const chunks = [];
+        let size = 0;
+        let tooLarge = false;
+
+        request.on("data", (chunk) => {
+            size += chunk.length;
+            if (size > registrationBodyLimit) {
+                tooLarge = true;
+                chunks.length = 0;
+                return;
+            }
+            if (!tooLarge) {
+                chunks.push(chunk);
+            }
+        });
+
+        request.on("error", reject);
+        request.on("end", () => {
+            if (tooLarge) {
+                sendJson(response, 413, {
+                    success: false,
+                    error: "Request body too large"
+                });
+                resolve(undefined);
+                return;
+            }
+
+            try {
+                resolve(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+            } catch {
+                sendBadRequest(response);
+                resolve(undefined);
+            }
+        });
+    });
+}
+
+function normalizeRegistrationInput(body) {
+    if (
+        body === null ||
+        typeof body !== "object" ||
+        Array.isArray(body) ||
+        Object.keys(body).length !== 3 ||
+        !Object.hasOwn(body, "email") ||
+        !Object.hasOwn(body, "username") ||
+        !Object.hasOwn(body, "password") ||
+        typeof body.email !== "string" ||
+        typeof body.username !== "string" ||
+        typeof body.password !== "string"
+    ) {
+        return null;
+    }
+
+    const email = body.email.trim().toLowerCase();
+    const username = body.username.trim().toLowerCase();
+    const passwordLength = Array.from(body.password).length;
+    const [localPart, domain] = email.split("@");
+    const validEmail =
+        email.length <= 254 &&
+        localPart?.length <= 64 &&
+        /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+$/.test(localPart || "") &&
+        !localPart?.startsWith(".") &&
+        !localPart?.endsWith(".") &&
+        !localPart?.includes("..") &&
+        /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/.test(
+            domain || ""
+        );
+
+    if (
+        !validEmail ||
+        !/^[a-z0-9_]{3,30}$/.test(username) ||
+        passwordLength < 12 ||
+        passwordLength > 128
+    ) {
+        return null;
+    }
+
+    return { email, username, password: body.password };
+}
+
+async function hashPassword(password) {
+    const salt = randomBytes(16);
+    const derivedKey = await scryptAsync(
+        password,
+        salt,
+        passwordHashParameters.keyLength,
+        {
+            N: passwordHashParameters.N,
+            r: passwordHashParameters.r,
+            p: passwordHashParameters.p,
+            maxmem: passwordHashParameters.maxmem
+        }
+    );
+    return [
+        "scrypt",
+        "v=1",
+        `N=${passwordHashParameters.N}`,
+        `r=${passwordHashParameters.r}`,
+        `p=${passwordHashParameters.p}`,
+        salt.toString("base64url"),
+        Buffer.from(derivedKey).toString("base64url")
+    ].join("$");
+}
+
+async function registerUser(input) {
+    const passwordHash = await hashPassword(input.password);
+    try {
+        const result = await databaseQuery(
+            `INSERT INTO users (email, username, password_hash)
+             VALUES ($1, $2, $3)
+             RETURNING id, email, username, created_at AS "createdAt"`,
+            [input.email, input.username, passwordHash]
+        );
+        return result.rows[0];
+    } catch (error) {
+        if (error instanceof DatabaseQueryError && error.code === "23505") {
+            return null;
+        }
+        throw error;
     }
 }
 
@@ -282,6 +430,45 @@ async function handleRequest(request, response) {
         sendJson(response, 400, {
             success: false,
             error: "Bad request"
+        });
+        return;
+    }
+
+    if (requestUrl.pathname === "/api/auth/register") {
+        if (request.method !== "POST") {
+            sendMethodNotAllowed(response, "POST");
+            return;
+        }
+        if (!isJsonContentType(request.headers["content-type"])) {
+            sendJson(response, 415, {
+                success: false,
+                error: "Unsupported content type"
+            });
+            return;
+        }
+        const body = await readJsonBody(request, response);
+        if (body === undefined) {
+            return;
+        }
+        const input = normalizeRegistrationInput(body);
+        if (!input) {
+            sendBadRequest(response);
+            return;
+        }
+        const user = await registerUser(input);
+        if (!user) {
+            sendJson(response, 409, {
+                success: false,
+                error: {
+                    code: "REGISTRATION_CONFLICT",
+                    message: "Unable to register with these details"
+                }
+            });
+            return;
+        }
+        sendJson(response, 201, {
+            success: true,
+            data: user
         });
         return;
     }
