@@ -26,6 +26,7 @@ The API returns JSON. Catalog routes use PostgreSQL for response data. The front
 |---|---|---|
 | `GET /api/health` | Check PostgreSQL readiness. No parameters; runs a database connectivity check. | `{"success":true,"service":"FANTRACK API","status":"ok"}` |
 | `POST /api/auth/register` | Register with JSON `email`, `username`, and `password`; email and username are trimmed and lowercased, username must be 3–30 ASCII letters/digits/underscores, and password must be 12–128 Unicode code points. Request body limit is 8 KiB. Registration does not create a session. | `201`: `{"success":true,"data":{"id":"...","email":"...","username":"...","createdAt":"..."}}` |
+| `POST /api/auth/login` | Log in with JSON `email` and `password`; email is normalized as during registration. Request body limit is 8 KiB. Success sets an HttpOnly, SameSite=Lax, Path=/ cookie with a seven-day lifetime; production also sets Secure. | `200`: `{"success":true,"data":{"id":"...","email":"...","username":"..."}}` |
 | `GET /api/artists` | List artists. No query parameters, filtering, or pagination. | `{"success":true,"data":[{"id":"...","name":"...","type":"...","music":"...","image":"..."}]}` |
 | `GET /api/artists/:id` | Get one artist by its path `id`. | `{"success":true,"data":{"id":"...","name":"...","type":"...","music":"...","image":"..."}}` |
 | `GET /api/updates` | List artist updates. No query parameters, filtering, or pagination. | `{"success":true,"data":[{"id":"...","artistId":"...","artistName":"...","type":"...","title":"...","description":"...","date":"...","link":"..."}]}` |
@@ -41,13 +42,14 @@ Errors use these generic JSON envelopes:
 
 | HTTP status | When returned | Response |
 |---|---|---|
-| `400 Bad Request` | Malformed request URL or detail path, or invalid registration JSON/fields. | `{"success":false,"error":"Bad request"}` |
+| `400 Bad Request` | Malformed request URL or detail path, or invalid registration/login JSON or fields. | `{"success":false,"error":"Bad request"}` |
 | `404 Not Found` | Unknown route, missing artist/update, or invalid public update ID. | `{"success":false,"error":"Not found"}` |
 | `405 Method Not Allowed` | Method other than the method supported by a recognized endpoint. Includes the appropriate `Allow` header. | `{"success":false,"error":"Method not allowed"}` |
+| `401 Unauthorized` | Login email/password pair is invalid. Does not distinguish an unknown email from a wrong password. | `{"success":false,"error":{"code":"INVALID_CREDENTIALS","message":"Invalid email or password"}}` |
 | `409 Conflict` | Registration email or username conflicts with an existing account. Does not identify which value conflicted. | `{"success":false,"error":{"code":"REGISTRATION_CONFLICT","message":"Unable to register with these details"}}` |
-| `413 Content Too Large` | Registration request body exceeds 8 KiB. | `{"success":false,"error":"Request body too large"}` |
-| `415 Unsupported Media Type` | Registration request does not use `application/json`. | `{"success":false,"error":"Unsupported content type"}` |
-| `503 Service Unavailable` | PostgreSQL connectivity or catalog query failure. | `{"success":false,"error":"Service unavailable"}` |
+| `413 Content Too Large` | Registration or login request body exceeds 8 KiB. | `{"success":false,"error":"Request body too large"}` |
+| `415 Unsupported Media Type` | Registration or login request does not use `application/json`. | `{"success":false,"error":"Unsupported content type"}` |
+| `503 Service Unavailable` | PostgreSQL connectivity or query failure. | `{"success":false,"error":"Service unavailable"}` |
 | `500 Internal Server Error` | Unexpected request-handler failure. | `{"success":false,"error":"Internal server error"}` |
 
-The API currently has no login/session authentication or follow write endpoints. Registration creates an account only; it does not authenticate the caller or create a session.
+Login creates a database-backed session and sets its opaque token in an HttpOnly cookie; only a SHA-256 hash of the token is stored in PostgreSQL. The cookie is Secure when `NODE_ENV=production`, so production must use HTTPS. The API has no logout or follow write endpoints yet.

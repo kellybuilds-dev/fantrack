@@ -4,14 +4,19 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const { promisify } = require("node:util");
-const { randomBytes, scrypt } = require("node:crypto");
+const {
+    createHash,
+    randomBytes,
+    scrypt,
+    timingSafeEqual
+} = require("node:crypto");
 const artists = require("../fantrack-artists.js");
 const { artistUpdates } = require("../fantrack-updates.js");
 const { query, checkConnection } = require("./db/connection.js");
 
 const port = Number(process.env.PORT || 3000);
 const scryptAsync = promisify(scrypt);
-const registrationBodyLimit = 8 * 1024;
+const credentialBodyLimit = 8 * 1024;
 const passwordHashParameters = {
     N: 32768,
     r: 8,
@@ -19,6 +24,8 @@ const passwordHashParameters = {
     keyLength: 64,
     maxmem: 64 * 1024 * 1024
 };
+const dummyPasswordSalt = Buffer.alloc(16);
+const sessionLifetimeSeconds = 7 * 24 * 60 * 60;
 const artistOrder = new Map(artists.map((artist, index) => [artist.id, index]));
 const updateOrder = new Map(
     Object.entries(artistUpdates).flatMap(([artistId, updates]) =>
@@ -125,7 +132,7 @@ function readJsonBody(request, response) {
 
         request.on("data", (chunk) => {
             size += chunk.length;
-            if (size > registrationBodyLimit) {
+            if (size > credentialBodyLimit) {
                 tooLarge = true;
                 chunks.length = 0;
                 return;
@@ -172,9 +179,24 @@ function normalizeRegistrationInput(body) {
         return null;
     }
 
-    const email = body.email.trim().toLowerCase();
+    const email = normalizeEmail(body.email);
     const username = body.username.trim().toLowerCase();
     const passwordLength = Array.from(body.password).length;
+
+    if (
+        email === null ||
+        !/^[a-z0-9_]{3,30}$/.test(username) ||
+        passwordLength < 12 ||
+        passwordLength > 128
+    ) {
+        return null;
+    }
+
+    return { email, username, password: body.password };
+}
+
+function normalizeEmail(value) {
+    const email = value.trim().toLowerCase();
     const [localPart, domain] = email.split("@");
     const validEmail =
         email.length <= 254 &&
@@ -186,17 +208,30 @@ function normalizeRegistrationInput(body) {
         /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/.test(
             domain || ""
         );
+    return validEmail ? email : null;
+}
 
+function normalizeLoginInput(body) {
     if (
-        !validEmail ||
-        !/^[a-z0-9_]{3,30}$/.test(username) ||
-        passwordLength < 12 ||
-        passwordLength > 128
+        body === null ||
+        typeof body !== "object" ||
+        Array.isArray(body) ||
+        Object.keys(body).length !== 2 ||
+        !Object.hasOwn(body, "email") ||
+        !Object.hasOwn(body, "password") ||
+        typeof body.email !== "string" ||
+        typeof body.password !== "string"
     ) {
         return null;
     }
 
-    return { email, username, password: body.password };
+    const email = normalizeEmail(body.email);
+    const passwordLength = Array.from(body.password).length;
+    if (email === null || passwordLength < 12 || passwordLength > 128) {
+        return null;
+    }
+
+    return { email, password: body.password };
 }
 
 async function hashPassword(password) {
@@ -221,6 +256,101 @@ async function hashPassword(password) {
         salt.toString("base64url"),
         Buffer.from(derivedKey).toString("base64url")
     ].join("$");
+}
+
+async function derivePasswordKey(password, salt) {
+    return Buffer.from(await scryptAsync(
+        password,
+        salt,
+        passwordHashParameters.keyLength,
+        {
+            N: passwordHashParameters.N,
+            r: passwordHashParameters.r,
+            p: passwordHashParameters.p,
+            maxmem: passwordHashParameters.maxmem
+        }
+    ));
+}
+
+async function verifyPassword(password, storedHash) {
+    const fields = typeof storedHash === "string" ? storedHash.split("$") : [];
+    const saltText = fields[5];
+    const keyText = fields[6];
+    const formatIsValid =
+        fields.length === 7 &&
+        fields[0] === "scrypt" &&
+        fields[1] === "v=1" &&
+        fields[2] === `N=${passwordHashParameters.N}` &&
+        fields[3] === `r=${passwordHashParameters.r}` &&
+        fields[4] === `p=${passwordHashParameters.p}` &&
+        /^[A-Za-z0-9_-]{22}$/.test(saltText || "") &&
+        /^[A-Za-z0-9_-]{86}$/.test(keyText || "");
+
+    if (!formatIsValid) {
+        const dummyKey = await derivePasswordKey(password, dummyPasswordSalt);
+        timingSafeEqual(dummyKey, Buffer.alloc(passwordHashParameters.keyLength));
+        return false;
+    }
+
+    const salt = Buffer.from(saltText, "base64url");
+    const expectedKey = Buffer.from(keyText, "base64url");
+    if (
+        salt.length !== 16 ||
+        expectedKey.length !== passwordHashParameters.keyLength ||
+        salt.toString("base64url") !== saltText ||
+        expectedKey.toString("base64url") !== keyText
+    ) {
+        const dummyKey = await derivePasswordKey(password, dummyPasswordSalt);
+        timingSafeEqual(dummyKey, Buffer.alloc(passwordHashParameters.keyLength));
+        return false;
+    }
+
+    const actualKey = await derivePasswordKey(password, salt);
+    return timingSafeEqual(actualKey, expectedKey);
+}
+
+function sendInvalidCredentials(response) {
+    sendJson(response, 401, {
+        success: false,
+        error: {
+            code: "INVALID_CREDENTIALS",
+            message: "Invalid email or password"
+        }
+    });
+}
+
+async function loginUser(input) {
+    const result = await databaseQuery(
+        `SELECT id, email, username, password_hash
+         FROM users
+         WHERE email = $1`,
+        [input.email]
+    );
+    const user = result.rows[0];
+    if (!user || !(await verifyPassword(input.password, user.password_hash))) {
+        if (!user) {
+            const dummyKey = await derivePasswordKey(input.password, dummyPasswordSalt);
+            timingSafeEqual(dummyKey, Buffer.alloc(passwordHashParameters.keyLength));
+        }
+        return null;
+    }
+
+    const token = randomBytes(32).toString("base64url");
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    await databaseQuery(
+        `INSERT INTO sessions (user_id, token_hash, expires_at)
+         VALUES ($1, $2, now() + interval '7 days')`,
+        [user.id, tokenHash]
+    );
+
+    return {
+        user: {
+            id: user.id,
+            email: user.email,
+            username: user.username
+        },
+        token
+    };
 }
 
 async function registerUser(input) {
@@ -470,6 +600,54 @@ async function handleRequest(request, response) {
             success: true,
             data: user
         });
+        return;
+    }
+
+    if (requestUrl.pathname === "/api/auth/login") {
+        if (request.method !== "POST") {
+            sendMethodNotAllowed(response, "POST");
+            return;
+        }
+        if (!isJsonContentType(request.headers["content-type"])) {
+            sendJson(response, 415, {
+                success: false,
+                error: "Unsupported content type"
+            });
+            return;
+        }
+        const body = await readJsonBody(request, response);
+        if (body === undefined) {
+            return;
+        }
+        const input = normalizeLoginInput(body);
+        if (!input) {
+            sendBadRequest(response);
+            return;
+        }
+        const login = await loginUser(input);
+        if (!login) {
+            sendInvalidCredentials(response);
+            return;
+        }
+        const cookieAttributes = [
+            `fantrack_session=${login.token}`,
+            "HttpOnly",
+            "SameSite=Lax",
+            "Path=/",
+            `Max-Age=${sessionLifetimeSeconds}`
+        ];
+        if (process.env.NODE_ENV === "production") {
+            cookieAttributes.push("Secure");
+        }
+        sendJson(
+            response,
+            200,
+            {
+                success: true,
+                data: login.user
+            },
+            { "Set-Cookie": cookieAttributes.join("; ") }
+        );
         return;
     }
 
