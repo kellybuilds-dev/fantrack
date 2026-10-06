@@ -1198,6 +1198,20 @@ function getUpdateDetailUrl(artistId, update) {
     return "update.html?" + params.toString();
 }
 
+function getUnreadCountForArtists(followedArtists) {
+    return followedArtists.reduce(function (count, artist) {
+        const updates = artistUpdates[artist.id] || [];
+        return count + updates.filter(function (update) {
+            return FantrackState.isAlertEnabled(artist.id, update.type) &&
+                !FantrackState.isNotificationRead(
+                    artist.id,
+                    update.type,
+                    update.title
+                );
+        }).length;
+    }, 0);
+}
+
 function refreshPersonalizedFeed() {
     latestUpdates.replaceChildren();
     if (followStateStatus !== "ready") {
@@ -1229,7 +1243,7 @@ function refreshPersonalizedFeed() {
     }
 
     const followedForFeed = getEffectiveFollowedArtists();
-    unreadCount = FantrackState.getUnreadCount(artists, artistUpdates);
+    unreadCount = getUnreadCountForArtists(followedForFeed);
 
     if (followedForFeed.length === 0) {
         const emptyState = document.createElement("div");

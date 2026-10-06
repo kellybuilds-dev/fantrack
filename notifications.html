@@ -399,6 +399,9 @@
     <section aria-labelledby="notificationListTitle">
         <div class="list-toolbar">
             <h2 id="notificationListTitle">Your updates</h2>
+            <button class="mark-all" id="retryNotifications" type="button" hidden>
+                Retry
+            </button>
             <button class="mark-all" id="markAllRead" type="button">
                 ✓ Mark all as read
             </button>
@@ -409,19 +412,21 @@
 
 </main>
 <script src="fantrack-state.js"></script>
-<script src="fantrack-updates.js"></script>
+<script src="fantrack-api.js"></script>
+<script src="fantrack-follow.js"></script>
 <script>
+    if (!window.FantrackState || !window.FantrackApi || !window.FantrackFollow) {
+        throw new Error("FANTRACK notification scripts failed to load.");
+    }
+
     const notificationsList =
         document.getElementById("notificationsList");
-
-    const notificationsTitle =
-    document.getElementById("notificationsTitle");
-
-    let unreadCount = 0;
-
-    const markAllRead =
-    document.getElementById("markAllRead");
-    const artists = [
+    const markAllRead = document.getElementById("markAllRead");
+    const retryNotifications =
+        document.getElementById("retryNotifications");
+    const unreadSummary = document.getElementById("unreadSummary");
+    const notificationStatus = document.getElementById("notificationStatus");
+    const knownArtists = [
         {
             id: "burna-boy",
             name: "Burna Boy"
@@ -447,12 +452,12 @@
             name: "Davido"
         }
     ];
-
-    const artistUpdates = FantrackUpdates.artistUpdates;
-
-
-    const unreadSummary = document.getElementById("unreadSummary");
-    const notificationStatus = document.getElementById("notificationStatus");
+    let artists = knownArtists.slice();
+    let updates = [];
+    let notifications = [];
+    let followedArtists = [];
+    let unreadCount = 0;
+    let isLoading = false;
     const categoryDetails = {
         music: { icon: "🎵", label: "Music" },
         event: { icon: "🎤", label: "Events" },
@@ -471,9 +476,12 @@
     }
 
     function updateUnreadSummary() {
-        unreadCount = FantrackState.getUnreadCount(artists, artistUpdates);
+        unreadCount = notifications.filter(function (notification) {
+            return !notification.isRead;
+        }).length;
         unreadSummary.textContent = unreadCount + " unread";
         markAllRead.hidden = unreadCount === 0;
+        markAllRead.disabled = isLoading;
     }
 
     function createEmptyState(title, description, linkText, linkHref) {
@@ -515,11 +523,58 @@
         markReadButton.hidden = isRead;
     }
 
-    function renderNotifications() {
-        const followedArtists = FantrackState.getFollowedArtists(artists);
-        const notifications =
-            FantrackState.getNotifications(artists, artistUpdates);
+    function buildNotifications() {
+        const artistById = new Map(
+            artists.map(function (artist) {
+                return [artist.id, artist];
+            })
+        );
+        updates.forEach(function (update) {
+            artistById.set(update.artistId, {
+                id: update.artistId,
+                name: update.artistName
+            });
+        });
+        artists = Array.from(artistById.values());
 
+        const followedIds = new Set(
+            FantrackFollow.getFollowedArtistIds(artists)
+        );
+        followedArtists = artists.filter(function (artist) {
+            return followedIds.has(artist.id);
+        });
+
+        notifications = updates
+            .filter(function (update) {
+                return followedIds.has(update.artistId) &&
+                    FantrackState.isAlertEnabled(
+                        update.artistId,
+                        update.type
+                    );
+            })
+            .map(function (update) {
+                const artist = artistById.get(update.artistId);
+                return {
+                    artist: artist,
+                    update: {
+                        id: update.id,
+                        type: update.type,
+                        title: update.title,
+                        description: update.description,
+                        date: update.date,
+                        link: update.link
+                    },
+                    isRead: FantrackState.isNotificationRead(
+                        update.artistId,
+                        update.type,
+                        update.title
+                    )
+                };
+            });
+    }
+
+    function renderNotifications() {
+        buildNotifications();
         updateUnreadSummary();
         notificationsList.replaceChildren();
 
@@ -544,7 +599,6 @@
             return;
         }
 
-        const unreadCount = FantrackState.getUnreadCount(artists, artistUpdates);
         if (unreadCount === 0) {
             notificationsList.appendChild(createEmptyState(
                 "✓ You're all caught up",
@@ -615,6 +669,9 @@
                         update.type,
                         update.title
                     );
+                    notification.isRead = true;
+                    updateNotificationCard(card, true, artist, update);
+                    updateUnreadSummary();
                 }
             });
             actions.appendChild(viewLink);
@@ -642,8 +699,7 @@
                     update.type,
                     update.title
                 );
-                updateNotificationCard(card, true, artist, update);
-                updateUnreadSummary();
+                renderNotifications();
                 notificationStatus.textContent =
                     "Marked " + artist.name + " — " + update.title + " as read.";
             });
@@ -656,13 +712,96 @@
         });
     }
 
+    function showUnavailable(title, message) {
+        notificationsList.replaceChildren();
+        const errorState = document.createElement("section");
+        errorState.className = "empty-state";
+        errorState.setAttribute("role", "alert");
+
+        const heading = document.createElement("h2");
+        heading.textContent = title;
+        errorState.appendChild(heading);
+
+        const description = document.createElement("p");
+        description.textContent = message;
+        errorState.appendChild(description);
+        notificationsList.appendChild(errorState);
+
+        unreadSummary.textContent = "Notifications unavailable";
+        markAllRead.hidden = true;
+        markAllRead.disabled = true;
+        retryNotifications.hidden = false;
+        notificationStatus.textContent = "";
+    }
+
+    async function loadNotifications() {
+        if (isLoading) {
+            return;
+        }
+        isLoading = true;
+        retryNotifications.hidden = true;
+        retryNotifications.disabled = true;
+        markAllRead.hidden = true;
+        markAllRead.disabled = true;
+        unreadSummary.textContent = "Loading...";
+        notificationStatus.textContent = "Loading notifications...";
+        notificationsList.replaceChildren();
+        const loadingMessage = document.createElement("p");
+        loadingMessage.className = "status-message";
+        loadingMessage.setAttribute("role", "status");
+        loadingMessage.textContent = "Loading notifications...";
+        notificationsList.appendChild(loadingMessage);
+
+        try {
+            try {
+                await FantrackFollow.initialize();
+            } catch {
+                showUnavailable(
+                    "Unable to load notification follows",
+                    "Follow state is temporarily unavailable. Please try again."
+                );
+                return;
+            }
+
+            try {
+                updates = await FantrackApi.getUpdates();
+            } catch {
+                showUnavailable(
+                    "Unable to load notifications",
+                    "FANTRACK updates are temporarily unavailable. Please try again."
+                );
+                return;
+            }
+
+            notificationStatus.textContent = "";
+            renderNotifications();
+        } finally {
+            isLoading = false;
+            retryNotifications.disabled = false;
+            markAllRead.disabled = false;
+        }
+    }
+
+    retryNotifications.addEventListener("click", loadNotifications);
+
     markAllRead.addEventListener("click", function () {
-        FantrackState.markAllNotificationsRead(artists, artistUpdates);
-        notificationStatus.textContent = "All notifications marked as read.";
+        if (isLoading || unreadCount === 0) {
+            return;
+        }
+        notifications.forEach(function (notification) {
+            if (!notification.isRead) {
+                FantrackState.markNotificationRead(
+                    notification.artist.id,
+                    notification.update.type,
+                    notification.update.title
+                );
+            }
+        });
         renderNotifications();
+        notificationStatus.textContent = "All notifications marked as read.";
     });
 
-    renderNotifications();
+    loadNotifications();
 </script>
 </body>
 </html>

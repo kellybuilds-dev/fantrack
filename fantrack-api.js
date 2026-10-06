@@ -159,10 +159,58 @@
         return data;
     }
 
+    function validateUpdate(data) {
+        const updateTypes = ["music", "event", "award", "news", "merch"];
+        if (
+            !hasExactKeys(data, [
+                "id",
+                "artistId",
+                "artistName",
+                "type",
+                "title",
+                "description",
+                "date",
+                "link"
+            ]) ||
+            !["id", "artistId", "artistName", "title"]
+                .every((key) =>
+                    typeof data[key] === "string" && data[key].trim() !== ""
+                ) ||
+            typeof data.description !== "string" ||
+            typeof data.date !== "string" ||
+            typeof data.link !== "string" ||
+            !updateTypes.includes(data.type)
+        ) {
+            throw new FantrackApiError(
+                "FANTRACK API returned an unexpected update.",
+                "INVALID_DATA"
+            );
+        }
+        return data;
+    }
+
     const api = {
         FantrackApiError,
         async getMe() {
             return validateUser(await requestData("/api/me", "GET"));
+        },
+        async getUpdates() {
+            const updates = await requestData("/api/updates", "GET");
+            if (!Array.isArray(updates)) {
+                throw new FantrackApiError(
+                    "FANTRACK API returned an unexpected update list.",
+                    "INVALID_DATA"
+                );
+            }
+            const validatedUpdates = updates.map(validateUpdate);
+            if (new Set(validatedUpdates.map((update) => update.id)).size !==
+                validatedUpdates.length) {
+                throw new FantrackApiError(
+                    "FANTRACK API returned duplicate updates.",
+                    "INVALID_DATA"
+                );
+            }
+            return validatedUpdates;
         },
         async getFollowedArtists() {
             const artists = await requestData("/api/me/follows", "GET");
