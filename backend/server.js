@@ -353,6 +353,61 @@ async function loginUser(input) {
     };
 }
 
+function parseSessionToken(cookieHeader) {
+    if (typeof cookieHeader !== "string") {
+        return null;
+    }
+
+    let token = null;
+    for (const cookie of cookieHeader.split(";")) {
+        const separator = cookie.indexOf("=");
+        const cookieName =
+            separator < 0 ? cookie.trim() : cookie.slice(0, separator).trim();
+        if (cookieName !== "fantrack_session") {
+            continue;
+        }
+        if (separator < 0) {
+            return null;
+        }
+        if (token !== null) {
+            return null;
+        }
+
+        const candidate = cookie.slice(separator + 1).trim();
+        if (!/^[A-Za-z0-9_-]{43}$/.test(candidate)) {
+            return null;
+        }
+        const tokenBytes = Buffer.from(candidate, "base64url");
+        if (
+            tokenBytes.length !== 32 ||
+            tokenBytes.toString("base64url") !== candidate
+        ) {
+            return null;
+        }
+        token = candidate;
+    }
+
+    return token;
+}
+
+async function getAuthenticatedUser(cookieHeader) {
+    const token = parseSessionToken(cookieHeader);
+    if (!token) {
+        return null;
+    }
+
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    const result = await databaseQuery(
+        `SELECT u.id, u.email, u.username
+         FROM sessions AS s
+         JOIN users AS u ON u.id = s.user_id
+         WHERE s.token_hash = $1
+           AND s.expires_at > now()`,
+        [tokenHash]
+    );
+    return result.rows[0] || null;
+}
+
 async function registerUser(input) {
     const passwordHash = await hashPassword(input.password);
     try {
@@ -648,6 +703,26 @@ async function handleRequest(request, response) {
             },
             { "Set-Cookie": cookieAttributes.join("; ") }
         );
+        return;
+    }
+
+    if (requestUrl.pathname === "/api/me") {
+        if (request.method !== "GET") {
+            sendMethodNotAllowed(response, "GET");
+            return;
+        }
+        const user = await getAuthenticatedUser(request.headers.cookie);
+        if (!user) {
+            sendJson(response, 401, {
+                success: false,
+                error: "Unauthorized"
+            });
+            return;
+        }
+        sendJson(response, 200, {
+            success: true,
+            data: user
+        });
         return;
     }
 
