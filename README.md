@@ -58,3 +58,5 @@ Errors use these generic JSON envelopes:
 | `500 Internal Server Error` | Unexpected request-handler failure. | `{"success":false,"error":"Internal server error"}` |
 
 Login creates a database-backed session and sets its opaque token in an HttpOnly cookie; only a SHA-256 hash of the token is stored in PostgreSQL. The cookie is Secure when `NODE_ENV=production`, so production must use HTTPS. Follow endpoints require this authenticated session and store relationships in PostgreSQL.
+
+The browser follow infrastructure is available in `fantrack-api.js` and `fantrack-follow.js`. The API helper validates response envelopes and data; the follow adapter uses local `FantrackState` follows when `/api/me` returns `401`, and uses server-backed state when the session is valid. These modules are not yet integrated into page controls.

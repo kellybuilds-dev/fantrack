@@ -599,6 +599,8 @@ const frontendFiles = new Set([
     "/notifications.html",
     "/update.html",
     "/fantrack-state.js",
+    "/fantrack-api.js",
+    "/fantrack-follow.js",
     "/fantrack-artists.js",
     "/fantrack-updates.js"
 ]);
