@@ -518,6 +518,47 @@ async function getArtist(id) {
     return result.rows[0] ? mapArtist(result.rows[0]) : null;
 }
 
+async function getFollowedArtists(userId) {
+    const result = await databaseQuery(
+        `SELECT a.id, a.name, a.type, a.music, a.image
+         FROM artist_follows AS f
+         JOIN artists AS a ON a.id = f.artist_id
+         WHERE f.user_id = $1
+         ORDER BY a.name ASC, a.id ASC`,
+        [userId]
+    );
+    return result.rows.map(mapArtist);
+}
+
+async function isFollowingArtist(userId, artistId) {
+    const result = await databaseQuery(
+        `SELECT EXISTS (
+             SELECT 1
+             FROM artist_follows
+             WHERE user_id = $1 AND artist_id = $2
+         ) AS followed`,
+        [userId, artistId]
+    );
+    return result.rows[0].followed;
+}
+
+async function followArtist(userId, artistId) {
+    await databaseQuery(
+        `INSERT INTO artist_follows (user_id, artist_id)
+         VALUES ($1, $2)
+         ON CONFLICT (user_id, artist_id) DO NOTHING`,
+        [userId, artistId]
+    );
+}
+
+async function unfollowArtist(userId, artistId) {
+    await databaseQuery(
+        `DELETE FROM artist_follows
+         WHERE user_id = $1 AND artist_id = $2`,
+        [userId, artistId]
+    );
+}
+
 async function getUpdates() {
     const result = await databaseQuery(
         `SELECT u.artist_id AS "artistId",
@@ -722,6 +763,74 @@ async function handleRequest(request, response) {
         sendJson(response, 200, {
             success: true,
             data: user
+        });
+        return;
+    }
+
+    if (requestUrl.pathname === "/api/me/follows") {
+        if (request.method !== "GET") {
+            sendMethodNotAllowed(response, "GET");
+            return;
+        }
+        const user = await getAuthenticatedUser(request.headers.cookie);
+        if (!user) {
+            sendJson(response, 401, {
+                success: false,
+                error: "Unauthorized"
+            });
+            return;
+        }
+        const data = await getFollowedArtists(user.id);
+        sendJson(response, 200, { success: true, data });
+        return;
+    }
+
+    const userFollowRoute = requestUrl.pathname.match(
+        /^\/api\/me\/follows\/([^/]+)$/
+    );
+    if (userFollowRoute) {
+        if (!["GET", "PUT", "DELETE"].includes(request.method)) {
+            sendMethodNotAllowed(response, "GET, PUT, DELETE");
+            return;
+        }
+        const user = await getAuthenticatedUser(request.headers.cookie);
+        if (!user) {
+            sendJson(response, 401, {
+                success: false,
+                error: "Unauthorized"
+            });
+            return;
+        }
+        const artistId = decodeRouteId(userFollowRoute[1], response);
+        if (artistId === null) {
+            return;
+        }
+        const artist = await getArtist(artistId);
+        if (!artist) {
+            sendNotFound(response);
+            return;
+        }
+
+        if (request.method === "GET") {
+            const followed = await isFollowingArtist(user.id, artistId);
+            sendJson(response, 200, {
+                success: true,
+                data: { artistId, followed }
+            });
+            return;
+        }
+        if (request.method === "PUT") {
+            await followArtist(user.id, artistId);
+            sendJson(response, 200, {
+                success: true,
+                data: { artistId, followed: true }
+            });
+            return;
+        }
+        await unfollowArtist(user.id, artistId);
+        sendJson(response, 200, {
+            success: true,
+            data: { artistId, followed: false }
         });
         return;
     }
