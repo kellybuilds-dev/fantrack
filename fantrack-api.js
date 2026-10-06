@@ -24,28 +24,44 @@
             );
     }
 
-    function apiErrorForStatus(status) {
+    function apiErrorForStatus(status, payload) {
         const errors = {
+            400: ["BAD_REQUEST", "The submitted details are invalid."],
             401: ["UNAUTHORIZED", "Authentication is required."],
             404: ["NOT_FOUND", "The requested FANTRACK resource was not found."],
             405: ["METHOD_NOT_ALLOWED", "That action is not supported by the FANTRACK API."],
+            409: ["REGISTRATION_CONFLICT", "Unable to register with these details."],
             503: ["SERVICE_UNAVAILABLE", "FANTRACK is temporarily unavailable. Please try again."]
         };
-        const [code, message] = errors[status] || [
+        let [code, message] = errors[status] || [
             "HTTP_ERROR",
             `FANTRACK API request failed (HTTP ${status}).`
         ];
+        if (
+            status === 409 &&
+            isRecord(payload?.error) &&
+            payload.error.code === "REGISTRATION_CONFLICT"
+        ) {
+            code = payload.error.code;
+        }
         return new FantrackApiError(message, code, status);
     }
 
-    async function requestData(path, method) {
+    async function requestData(path, method, body) {
+        const headers = { Accept: "application/json" };
+        const options = {
+            method,
+            credentials: "same-origin",
+            headers
+        };
+        if (body !== undefined) {
+            headers["Content-Type"] = "application/json";
+            options.body = JSON.stringify(body);
+        }
+
         let response;
         try {
-            response = await root.fetch(path, {
-                method,
-                credentials: "same-origin",
-                headers: { Accept: "application/json" }
-            });
+            response = await root.fetch(path, options);
         } catch {
             throw new FantrackApiError(
                 "Unable to reach FANTRACK. Check your connection and try again.",
@@ -85,7 +101,7 @@
                     response.status
                 );
             }
-            throw apiErrorForStatus(response.status);
+            throw apiErrorForStatus(response.status, payload);
         }
 
         if (
@@ -123,6 +139,46 @@
             );
         }
         return data;
+    }
+
+    function validateRegistration(data) {
+        if (
+            !hasExactKeys(data, ["id", "email", "username", "createdAt"]) ||
+            !Object.values(data).every(
+                (value) => typeof value === "string" && value.trim() !== ""
+            )
+        ) {
+            throw new FantrackApiError(
+                "FANTRACK API returned an unexpected registration result.",
+                "INVALID_DATA"
+            );
+        }
+        return data;
+    }
+
+    function validateLogout(data) {
+        if (!hasExactKeys(data, ["loggedOut"]) || data.loggedOut !== true) {
+            throw new FantrackApiError(
+                "FANTRACK API returned an unexpected logout result.",
+                "INVALID_DATA"
+            );
+        }
+        return data;
+    }
+
+    function validateCredentials(data, fields) {
+        if (
+            !hasExactKeys(data, fields) ||
+            !fields.every((field) =>
+                typeof data[field] === "string" && data[field].trim() !== ""
+            )
+        ) {
+            throw new FantrackApiError(
+                "Valid account details are required.",
+                "INVALID_ARGUMENT"
+            );
+        }
+        return Object.fromEntries(fields.map((field) => [field, data[field]]));
     }
 
     function validateArtist(data) {
@@ -193,6 +249,34 @@
         FantrackApiError,
         async getMe() {
             return validateUser(await requestData("/api/me", "GET"));
+        },
+        async register(credentials) {
+            const body = validateCredentials(
+                credentials,
+                ["email", "username", "password"]
+            );
+            return validateRegistration(await requestData(
+                "/api/auth/register",
+                "POST",
+                body
+            ));
+        },
+        async login(credentials) {
+            const body = validateCredentials(
+                credentials,
+                ["email", "password"]
+            );
+            return validateUser(await requestData(
+                "/api/auth/login",
+                "POST",
+                body
+            ));
+        },
+        async logout() {
+            return validateLogout(await requestData(
+                "/api/auth/logout",
+                "POST"
+            ));
         },
         async getUpdates() {
             const updates = await requestData("/api/updates", "GET");

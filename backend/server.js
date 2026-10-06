@@ -319,6 +319,24 @@ function sendInvalidCredentials(response) {
     });
 }
 
+function sessionCookie(value, maxAge) {
+    const attributes = [
+        `fantrack_session=${value}`,
+        "HttpOnly",
+        "SameSite=Lax",
+        "Path=/",
+        `Max-Age=${maxAge}`
+    ];
+    if (process.env.NODE_ENV === "production") {
+        attributes.push("Secure");
+    }
+    return attributes.join("; ");
+}
+
+function hashSessionToken(token) {
+    return createHash("sha256").update(token).digest("hex");
+}
+
 async function loginUser(input) {
     const result = await databaseQuery(
         `SELECT id, email, username, password_hash
@@ -336,7 +354,7 @@ async function loginUser(input) {
     }
 
     const token = randomBytes(32).toString("base64url");
-    const tokenHash = createHash("sha256").update(token).digest("hex");
+    const tokenHash = hashSessionToken(token);
     await databaseQuery(
         `INSERT INTO sessions (user_id, token_hash, expires_at)
          VALUES ($1, $2, now() + interval '7 days')`,
@@ -396,7 +414,7 @@ async function getAuthenticatedUser(cookieHeader) {
         return null;
     }
 
-    const tokenHash = createHash("sha256").update(token).digest("hex");
+    const tokenHash = hashSessionToken(token);
     const result = await databaseQuery(
         `SELECT u.id, u.email, u.username
          FROM sessions AS s
@@ -598,6 +616,7 @@ const frontendFiles = new Set([
     "/artist.html",
     "/notifications.html",
     "/update.html",
+    "/account.html",
     "/fantrack-state.js",
     "/fantrack-api.js",
     "/fantrack-follow.js",
@@ -727,16 +746,6 @@ async function handleRequest(request, response) {
             sendInvalidCredentials(response);
             return;
         }
-        const cookieAttributes = [
-            `fantrack_session=${login.token}`,
-            "HttpOnly",
-            "SameSite=Lax",
-            "Path=/",
-            `Max-Age=${sessionLifetimeSeconds}`
-        ];
-        if (process.env.NODE_ENV === "production") {
-            cookieAttributes.push("Secure");
-        }
         sendJson(
             response,
             200,
@@ -744,7 +753,31 @@ async function handleRequest(request, response) {
                 success: true,
                 data: login.user
             },
-            { "Set-Cookie": cookieAttributes.join("; ") }
+            { "Set-Cookie": sessionCookie(login.token, sessionLifetimeSeconds) }
+        );
+        return;
+    }
+
+    if (requestUrl.pathname === "/api/auth/logout") {
+        if (request.method !== "POST") {
+            sendMethodNotAllowed(response, "POST");
+            return;
+        }
+        const token = parseSessionToken(request.headers.cookie);
+        if (token) {
+            await databaseQuery(
+                "DELETE FROM sessions WHERE token_hash = $1",
+                [hashSessionToken(token)]
+            );
+        }
+        sendJson(
+            response,
+            200,
+            {
+                success: true,
+                data: { loggedOut: true }
+            },
+            { "Set-Cookie": sessionCookie("", 0) }
         );
         return;
     }

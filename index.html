@@ -564,6 +564,14 @@
         0
     </span>
 </a>
+    <nav aria-label="Account navigation" style="display: flex; align-items: center; gap: 12px;">
+        <span id="accountNavStatus" role="status" aria-live="polite">Checking account...</span>
+        <a id="accountNavLink" href="account.html" hidden style="color: #c4b5fd;">Account</a>
+        <a id="loginNavLink" href="account.html#login" hidden style="color: #c4b5fd;">Login</a>
+        <a id="registerNavLink" href="account.html#register" hidden style="color: #c4b5fd;">Register</a>
+        <button id="logoutNavButton" type="button" hidden>Logout</button>
+        <button id="retryAccountStatus" type="button" hidden>Retry</button>
+    </nav>
 </header>
 
 <main class="container">
@@ -677,6 +685,15 @@
 
     const notificationBadge =
     document.getElementById("notificationBadge");
+    const accountNavStatus =
+        document.getElementById("accountNavStatus");
+    const accountNavLink = document.getElementById("accountNavLink");
+    const loginNavLink = document.getElementById("loginNavLink");
+    const registerNavLink = document.getElementById("registerNavLink");
+    const logoutNavButton =
+        document.getElementById("logoutNavButton");
+    const retryAccountStatus =
+        document.getElementById("retryAccountStatus");
 
     const latestUpdates =
         document.getElementById("latestUpdates");
@@ -688,6 +705,58 @@
     let updateLoadStatus = "loading";
     let followStateStatus = "loading";
     const pendingFollowIds = new Set();
+
+function hideAccountNavigationOptions() {
+    accountNavLink.hidden = true;
+    loginNavLink.hidden = true;
+    registerNavLink.hidden = true;
+    logoutNavButton.hidden = true;
+    retryAccountStatus.hidden = true;
+}
+
+async function loadAccountNavigation() {
+    hideAccountNavigationOptions();
+    accountNavStatus.setAttribute("role", "status");
+    accountNavStatus.textContent = "Checking account...";
+    try {
+        const user = await FantrackApi.getMe();
+        accountNavStatus.textContent = user.username;
+        accountNavLink.hidden = false;
+        logoutNavButton.hidden = false;
+    } catch (error) {
+        if (error.status === 401) {
+            accountNavStatus.textContent = "";
+            loginNavLink.hidden = false;
+            registerNavLink.hidden = false;
+            return;
+        }
+        accountNavStatus.setAttribute("role", "alert");
+        accountNavStatus.textContent =
+            "Account status unavailable.";
+        retryAccountStatus.hidden = false;
+    }
+}
+
+logoutNavButton.addEventListener("click", async function () {
+    if (logoutNavButton.disabled) {
+        return;
+    }
+    logoutNavButton.disabled = true;
+    accountNavStatus.setAttribute("role", "status");
+    accountNavStatus.textContent = "Logging out...";
+    try {
+        await FantrackApi.logout();
+        window.location.reload();
+    } catch (error) {
+        accountNavStatus.setAttribute("role", "alert");
+        accountNavStatus.textContent = error.message ||
+            "Unable to log out. Please try again.";
+        logoutNavButton.disabled = false;
+    }
+});
+
+retryAccountStatus.addEventListener("click", loadAccountNavigation);
+loadAccountNavigation();
 
 function showFollowStateStatus(message, isError = false) {
     followStateStatusElement.textContent = message;

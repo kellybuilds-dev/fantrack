@@ -59,4 +59,8 @@ Errors use these generic JSON envelopes:
 
 Login creates a database-backed session and sets its opaque token in an HttpOnly cookie; only a SHA-256 hash of the token is stored in PostgreSQL. The cookie is Secure when `NODE_ENV=production`, so production must use HTTPS. Follow endpoints require this authenticated session and store relationships in PostgreSQL.
 
-The browser follow infrastructure is available in `fantrack-api.js` and `fantrack-follow.js`. The API helper validates response envelopes and data; the follow adapter uses local `FantrackState` follows when `/api/me` returns `401`, and uses server-backed state when the session is valid. These modules are not yet integrated into page controls.
+The browser API helper in `fantrack-api.js` validates response envelopes and data. The `fantrack-follow.js` adapter uses local `FantrackState` follows when `/api/me` returns `401`, and server-backed state when the session is valid. Dashboard, artist, and notification pages use this adapter for their follow-dependent behavior.
+
+### Account experience
+
+Use `account.html` to register, log in, view the authenticated username/email and server-backed followed artists, or log out. Registration does not sign in automatically; log in after successful registration. Logout revokes only the current session. Anonymous device-local follows are not automatically copied into an account.

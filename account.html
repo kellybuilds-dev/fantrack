@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account | FANTRACK</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: #0b0b0f;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #25252d;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        header span { color: #8b5cf6; }
+        main { max-width: 760px; margin: auto; padding: 30px 20px 56px; }
+        a { color: #c4b5fd; }
+        .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+        section {
+            margin-top: 22px;
+            padding: 22px;
+            border: 1px solid #30283f;
+            border-radius: 14px;
+            background: #15151c;
+        }
+        h1, h2 { margin-top: 0; }
+        label { display: block; margin-top: 14px; color: #d4d4d8; }
+        input {
+            display: block;
+            width: 100%;
+            margin-top: 6px;
+            padding: 11px;
+            border: 1px solid #3f3f46;
+            border-radius: 8px;
+            background: #0b0b0f;
+            color: white;
+            font: inherit;
+        }
+        input:focus-visible, button:focus-visible, a:focus-visible {
+            outline: 3px solid #c4b5fd;
+            outline-offset: 3px;
+        }
+        button {
+            margin-top: 18px;
+            padding: 10px 15px;
+            border: 0;
+            border-radius: 8px;
+            background: #8b5cf6;
+            color: white;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        button:disabled { cursor: wait; opacity: 0.6; }
+        [role="status"], [role="alert"] { min-height: 1.5em; color: #d4d4d8; }
+        [role="alert"] { color: #fca5a5; }
+        #followedArtists { padding-left: 22px; }
+        #followedArtists li { margin: 8px 0; }
+        .muted { color: #a1a1aa; }
+        [hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+    <header>FAN<span>TRACK</span></header>
+    <main>
+        <p><a href="index.html">← Back to FANTRACK</a></p>
+        <h1>Account</h1>
+        <p id="pageStatus" role="status" aria-live="polite">Checking account status...</p>
+
+        <section id="unavailablePanel" hidden>
+            <h2>Account unavailable</h2>
+            <p>FANTRACK could not verify your account. Please try again.</p>
+            <button id="retryButton" type="button">Retry</button>
+        </section>
+
+        <div class="panels" id="anonymousPanels" hidden>
+            <section id="loginPanel" aria-labelledby="loginTitle">
+                <h2 id="loginTitle">Log in</h2>
+                <form id="loginForm">
+                    <label for="loginEmail">Email</label>
+                    <input id="loginEmail" name="email" type="email" autocomplete="username" maxlength="254" required>
+                    <label for="loginPassword">Password</label>
+                    <input id="loginPassword" name="password" type="password" autocomplete="current-password" minlength="12" maxlength="128" required>
+                    <button id="loginButton" type="submit">Log in</button>
+                </form>
+                <p id="loginMessage" role="status" aria-live="polite"></p>
+            </section>
+
+            <section id="registerPanel" aria-labelledby="registerTitle">
+                <h2 id="registerTitle">Create an account</h2>
+                <form id="registerForm">
+                    <label for="registerUsername">Username</label>
+                    <input id="registerUsername" name="username" type="text" autocomplete="username" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" required>
+                    <label for="registerEmail">Email</label>
+                    <input id="registerEmail" name="email" type="email" autocomplete="email" maxlength="254" required>
+                    <label for="registerPassword">Password</label>
+                    <input id="registerPassword" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+                    <button id="registerButton" type="submit">Register</button>
+                </form>
+                <p id="registerMessage" role="status" aria-live="polite"></p>
+            </section>
+        </div>
+
+        <section id="accountPanel" aria-labelledby="accountTitle" hidden>
+            <h2 id="accountTitle">Your account</h2>
+            <p>Username: <strong id="accountUsername"></strong></p>
+            <p>Email: <strong id="accountEmail"></strong></p>
+            <p id="accountStatus" class="muted">Signed in</p>
+            <h3>Followed artists</h3>
+            <ul id="followedArtists"></ul>
+            <p id="followStatus" role="status" aria-live="polite"></p>
+            <button id="logoutButton" type="button">Log out</button>
+            <p id="logoutMessage" role="status" aria-live="polite"></p>
+        </section>
+    </main>
+    <script src="fantrack-api.js"></script>
+    <script>
+        if (!window.FantrackApi) {
+            throw new Error("FANTRACK account API failed to load.");
+        }
+
+        const pageStatus = document.getElementById("pageStatus");
+        const unavailablePanel = document.getElementById("unavailablePanel");
+        const anonymousPanels = document.getElementById("anonymousPanels");
+        const accountPanel = document.getElementById("accountPanel");
+        const loginForm = document.getElementById("loginForm");
+        const registerForm = document.getElementById("registerForm");
+        const loginButton = document.getElementById("loginButton");
+        const registerButton = document.getElementById("registerButton");
+        const logoutButton = document.getElementById("logoutButton");
+
+        function showAnonymous(message) {
+            pageStatus.textContent = message || "You are not logged in.";
+            unavailablePanel.hidden = true;
+            accountPanel.hidden = true;
+            anonymousPanels.hidden = false;
+        }
+
+        function showUnavailable() {
+            pageStatus.textContent = "Account status is unavailable.";
+            unavailablePanel.hidden = false;
+            accountPanel.hidden = true;
+            anonymousPanels.hidden = true;
+        }
+
+        function setFormPending(form, button, pending) {
+            for (const control of form.elements) {
+                control.disabled = pending;
+            }
+            button.textContent = pending
+                ? (form === loginForm ? "Logging in..." : "Registering...")
+                : (form === loginForm ? "Log in" : "Register");
+        }
+
+        function showFormError(element, error, action) {
+            if (error.status === 401 && action === "login") {
+                element.textContent = "Email or password is incorrect.";
+            } else if (error.status === 409 && action === "register") {
+                element.textContent = "Unable to register with these details. The email or username may already be in use.";
+            } else if (error.status === 400) {
+                element.textContent = "Check the required fields and try again.";
+            } else if (error.status === 503) {
+                element.textContent = "FANTRACK is temporarily unavailable. Please try again.";
+            } else if (error.code === "NETWORK_ERROR") {
+                element.textContent = "FANTRACK could not be reached. Check your connection and try again.";
+            } else {
+                element.textContent = error.message || "Something went wrong. Please try again.";
+            }
+            element.setAttribute("role", "alert");
+        }
+
+        async function loadAccount() {
+            pageStatus.textContent = "Checking account status...";
+            unavailablePanel.hidden = true;
+            anonymousPanels.hidden = true;
+            accountPanel.hidden = true;
+            try {
+                const user = await FantrackApi.getMe();
+                let followedArtists;
+                try {
+                    followedArtists = await FantrackApi.getFollowedArtists();
+                } catch (error) {
+                    if (error.status === 401) {
+                        showAnonymous("Your session expired. Please log in again.");
+                    } else {
+                        showUnavailable();
+                    }
+                    return;
+                }
+
+                document.getElementById("accountUsername").textContent =
+                    user.username;
+                document.getElementById("accountEmail").textContent =
+                    user.email;
+                const list = document.getElementById("followedArtists");
+                list.replaceChildren();
+                if (followedArtists.length === 0) {
+                    const item = document.createElement("li");
+                    item.textContent = "You haven't followed any artists yet.";
+                    list.appendChild(item);
+                } else {
+                    followedArtists.forEach(function (artist) {
+                        const item = document.createElement("li");
+                        item.textContent = artist.name;
+                        if (artist.type) {
+                            item.textContent += " — " + artist.type;
+                        }
+                        list.appendChild(item);
+                    });
+                }
+                pageStatus.textContent = "";
+                accountPanel.hidden = false;
+            } catch (error) {
+                if (error.status === 401) {
+                    showAnonymous();
+                } else {
+                    showUnavailable();
+                }
+            }
+        }
+
+        loginForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+            if (loginButton.disabled) {
+                return;
+            }
+            const message = document.getElementById("loginMessage");
+            message.textContent = "";
+            message.setAttribute("role", "status");
+            setFormPending(loginForm, loginButton, true);
+            try {
+                await FantrackApi.login({
+                    email: loginForm.elements.email.value,
+                    password: loginForm.elements.password.value
+                });
+                pageStatus.textContent = "Login successful. Loading your account...";
+                window.location.reload();
+            } catch (error) {
+                showFormError(message, error, "login");
+            } finally {
+                setFormPending(loginForm, loginButton, false);
+            }
+        });
+
+        registerForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+            if (registerButton.disabled) {
+                return;
+            }
+            const message = document.getElementById("registerMessage");
+            message.textContent = "";
+            message.setAttribute("role", "status");
+            setFormPending(registerForm, registerButton, true);
+            try {
+                await FantrackApi.register({
+                    email: registerForm.elements.email.value,
+                    username: registerForm.elements.username.value,
+                    password: registerForm.elements.password.value
+                });
+                loginForm.elements.email.value =
+                    registerForm.elements.email.value.trim();
+                registerForm.reset();
+                message.textContent =
+                    "Registration successful. You are not logged in yet; log in with your new account.";
+                loginForm.elements.email.focus();
+            } catch (error) {
+                showFormError(message, error, "register");
+            } finally {
+                setFormPending(registerForm, registerButton, false);
+            }
+        });
+
+        logoutButton.addEventListener("click", async function () {
+            if (logoutButton.disabled) {
+                return;
+            }
+            const message = document.getElementById("logoutMessage");
+            logoutButton.disabled = true;
+            logoutButton.textContent = "Logging out...";
+            message.setAttribute("role", "status");
+            message.textContent = "Logging out...";
+            try {
+                await FantrackApi.logout();
+                message.textContent = "Logged out. Returning to anonymous mode...";
+                window.location.reload();
+            } catch (error) {
+                message.setAttribute("role", "alert");
+                message.textContent = error.message ||
+                    "Unable to log out. Please try again.";
+                logoutButton.disabled = false;
+                logoutButton.textContent = "Log out";
+            }
+        });
+
+        document.getElementById("retryButton").addEventListener(
+            "click",
+            loadAccount
+        );
+        loadAccount();
+    </script>
+</body>
+</html>
