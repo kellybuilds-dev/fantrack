@@ -479,7 +479,14 @@
 
             <div class="artist-controls">
                 <div class="artist-actions">
-                <button class="follow" id="followButton" type="button" aria-pressed="false">
+                <button
+                    class="follow"
+                    id="followButton"
+                    type="button"
+                    aria-pressed="false"
+                    aria-busy="true"
+                    disabled
+                >
                     ❤️ Follow Artist
                 </button>
 
@@ -494,6 +501,14 @@
                     🔔 Get Alerts
                 </button>
                 </div>
+
+                <p
+                    class="alert-help"
+                    id="followStatus"
+                    role="status"
+                    aria-live="polite"
+                    hidden
+                ></p>
 
                 <p class="alert-help" id="alertHelp">
                     Category alerts are delivered only for artists you follow while master alerts are on. Your category choices stay saved when master alerts are paused.
@@ -572,7 +587,13 @@
 
 </main>
 <script src="fantrack-state.js"></script>
+<script src="fantrack-api.js"></script>
+<script src="fantrack-follow.js"></script>
 <script>
+    if (!window.FantrackState || !window.FantrackApi || !window.FantrackFollow) {
+        throw new Error("FANTRACK follow scripts failed to load.");
+    }
+
     const artistData = {
         "burna-boy": {
     name: "Burna Boy",
@@ -1048,10 +1069,12 @@ merch: {
         followerCount.hidden = true;
         followButton.disabled = true;
         alertButton.disabled = true;
+        followButton.setAttribute("aria-busy", "false");
     }
 
     if (data) {
         const alertOptions = document.getElementById("alertOptions");
+        const followStatus = document.getElementById("followStatus");
 
         function updateFollowDisplay(isFollowing) {
             followButton.textContent = isFollowing
@@ -1090,17 +1113,69 @@ merch: {
             alertButton.classList.toggle("is-alerting", alertsEnabled);
         }
 
-        const followed = FantrackState.isFollowing(currentArtist);
-        updateFollowDisplay(followed);
         updateAlertDisplay(FantrackState.areAlertsEnabled(currentArtist));
 
-        followButton.addEventListener("click", function () {
-            const isNowFollowing = FantrackState.setFollowing(
-                currentArtist,
-                !FantrackState.isFollowing(currentArtist)
-            );
-            updateFollowDisplay(isNowFollowing);
+        followButton.addEventListener("click", async function () {
+            if (followButton.disabled) {
+                return;
+            }
+            const shouldFollow = !FantrackFollow.isFollowing(currentArtist);
+            followButton.disabled = true;
+            followButton.setAttribute("aria-busy", "true");
+            followStatus.hidden = false;
+            followStatus.setAttribute("role", "status");
+            followStatus.textContent = "Updating follow for " + data.name + "...";
+            let confirmedState;
+            try {
+                confirmedState = await Promise.resolve(
+                    shouldFollow
+                        ? FantrackFollow.follow(currentArtist)
+                        : FantrackFollow.unfollow(currentArtist)
+                );
+                if (confirmedState !== shouldFollow) {
+                    throw new Error("FANTRACK did not confirm the follow change.");
+                }
+            } catch (error) {
+                followStatus.setAttribute("role", "alert");
+                followStatus.textContent =
+                    error && typeof error.message === "string"
+                        ? error.message
+                        : "Unable to update your follow. Please try again.";
+            } finally {
+                followButton.disabled = false;
+                followButton.setAttribute("aria-busy", "false");
+            }
+            if (confirmedState === shouldFollow) {
+                updateFollowDisplay(confirmedState);
+                followStatus.textContent = "";
+                followStatus.hidden = true;
+            }
         });
+
+        async function initializeFollowState() {
+            followButton.disabled = true;
+            followButton.setAttribute("aria-busy", "true");
+            followStatus.hidden = false;
+            followStatus.setAttribute("role", "status");
+            followStatus.textContent = "Checking follow state...";
+            try {
+                await FantrackFollow.initialize();
+                updateFollowDisplay(
+                    FantrackFollow.isFollowing(currentArtist)
+                );
+                followStatus.textContent = "";
+                followStatus.hidden = true;
+                followButton.disabled = false;
+                followButton.setAttribute("aria-busy", "false");
+            } catch {
+                followStatus.setAttribute("role", "alert");
+                followStatus.textContent =
+                    "Follow state is temporarily unavailable. Please refresh the page to try again.";
+                followButton.setAttribute("aria-busy", "false");
+            }
+        }
+
+        initializeFollowState();
 
         alertButton.addEventListener("click", function () {
             const alertsOn = FantrackState.areAlertsEnabled(currentArtist);

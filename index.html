@@ -608,6 +608,13 @@
 
     <section class="section">
         <h2 id="myArtistsTitle" tabindex="-1">❤️ My Artists</h2>
+        <p
+            id="followStateStatus"
+            class="artist-control-status"
+            role="status"
+            aria-live="polite"
+            hidden
+        ></p>
         <div class="artists" id="myArtists">
             <div class="empty-state">
                 <p>You haven't followed any artists yet.</p>
@@ -654,8 +661,16 @@
     FANTRACK © 2026 — Follow the artists you love.
 </footer>
 <script src="fantrack-state.js"></script>
+<script src="fantrack-api.js"></script>
+<script src="fantrack-follow.js"></script>
 <script>
+    if (!window.FantrackState || !window.FantrackApi || !window.FantrackFollow) {
+        throw new Error("FANTRACK follow scripts failed to load.");
+    }
+
     const myArtists = document.getElementById("myArtists");
+    const followStateStatusElement =
+        document.getElementById("followStateStatus");
 
     const notificationsLink =
     document.getElementById("notificationsLink");
@@ -671,6 +686,86 @@
     let artistUpdates = Object.create(null);
     let artistLoadStatus = "loading";
     let updateLoadStatus = "loading";
+    let followStateStatus = "loading";
+    const pendingFollowIds = new Set();
+
+function showFollowStateStatus(message, isError = false) {
+    followStateStatusElement.textContent = message;
+    followStateStatusElement.hidden = message === "";
+    followStateStatusElement.setAttribute(
+        "role",
+        isError ? "alert" : "status"
+    );
+}
+
+function appendFollowStateStatus(container) {
+    const status = document.createElement("p");
+    status.className = "api-state-message";
+    status.setAttribute("role", followStateStatus === "error" ? "alert" : "status");
+    status.textContent = followStateStatus === "error"
+        ? "Follow state is temporarily unavailable. Please refresh the page to try again."
+        : "Checking follow state...";
+    container.appendChild(status);
+}
+
+function setFollowMutationPending(artistId, isPending) {
+    if (isPending) {
+        pendingFollowIds.add(artistId);
+    } else {
+        pendingFollowIds.delete(artistId);
+    }
+    document.querySelectorAll("[data-follow-artist-id]").forEach((button) => {
+        if (button.dataset.followArtistId === artistId) {
+            button.disabled = isPending || followStateStatus !== "ready";
+            button.setAttribute("aria-busy", String(isPending));
+        }
+    });
+}
+
+function getEffectiveFollowedArtists() {
+    const followedIds = new Set(
+        FantrackFollow.getFollowedArtistIds(artists)
+    );
+    return artists.filter((artist) => followedIds.has(artist.id));
+}
+
+function showFollowMutationError(error) {
+    const message = error && typeof error.message === "string"
+        ? error.message
+        : "Unable to update your follow. Please try again.";
+    showFollowStateStatus(message, true);
+}
+
+async function performFollowMutation(artist, button, onSuccess) {
+    if (button.disabled || followStateStatus !== "ready") {
+        return;
+    }
+
+    const shouldFollow = !FantrackFollow.isFollowing(artist.id);
+    setFollowMutationPending(artist.id, true);
+    showFollowStateStatus("Updating follow for " + artist.name + "...");
+
+    try {
+        let confirmedState;
+        try {
+            confirmedState = await Promise.resolve(
+                shouldFollow
+                    ? FantrackFollow.follow(artist.id)
+                    : FantrackFollow.unfollow(artist.id)
+            );
+            if (confirmedState !== shouldFollow) {
+                throw new Error("FANTRACK did not confirm the follow change.");
+            }
+        } catch (error) {
+            showFollowMutationError(error);
+            return;
+        }
+        showFollowStateStatus("");
+        onSuccess(confirmedState);
+    } finally {
+        setFollowMutationPending(artist.id, false);
+    }
+}
 
 const alertTypes = [
     { id: "music", label: "🎵 Music" },
@@ -683,6 +778,11 @@ const alertTypes = [
 function renderMyArtists() {
     myArtists.replaceChildren();
 
+    if (followStateStatus !== "ready") {
+        appendFollowStateStatus(myArtists);
+        return;
+    }
+
     if (artistLoadStatus !== "ready") {
         const status = document.createElement("p");
         status.className = "api-state-message";
@@ -694,7 +794,7 @@ function renderMyArtists() {
         return;
     }
 
-    const followedArtists = FantrackState.getFollowedArtists(artists);
+    const followedArtists = getEffectiveFollowedArtists();
 
     if (followedArtists.length === 0) {
         const emptyState = document.createElement("div");
@@ -808,6 +908,8 @@ function renderMyArtists() {
         unfollowButton.type = "button";
         unfollowButton.textContent = "Unfollow";
         unfollowButton.setAttribute("aria-label", "Unfollow " + artist.name);
+        unfollowButton.dataset.followArtistId = artist.id;
+        unfollowButton.disabled = pendingFollowIds.has(artist.id);
         actions.appendChild(unfollowButton);
         card.appendChild(actions);
 
@@ -880,11 +982,13 @@ function renderMyArtists() {
         });
 
         unfollowButton.addEventListener("click", function () {
-            FantrackState.setFollowing(artist.id, false);
-            renderMyArtists();
-            refreshPersonalizedFeed();
-            const nextProfile = myArtists.querySelector(".artist-profile-link");
-            (nextProfile || artistSearch).focus();
+            performFollowMutation(artist, unfollowButton, function () {
+                renderMyArtists();
+                refreshPersonalizedFeed();
+                const nextProfile =
+                    myArtists.querySelector(".artist-profile-link");
+                (nextProfile || artistSearch).focus();
+            });
         });
 
         myArtists.appendChild(card);
@@ -951,6 +1055,13 @@ function populateDiscoveryFilters() {
 
 function renderArtistDirectory() {
     artistDirectory.replaceChildren();
+    if (followStateStatus !== "ready") {
+        discoveryResultCount.textContent = followStateStatus === "error"
+            ? "Follow state unavailable."
+            : "Checking follow state...";
+        appendFollowStateStatus(artistDirectory);
+        return;
+    }
     if (artistLoadStatus !== "ready") {
         discoveryResultCount.textContent = artistLoadStatus === "error"
             ? "Artist catalog unavailable."
@@ -1041,6 +1152,8 @@ function renderArtistDirectory() {
         const followButton = document.createElement("button");
         followButton.className = "discovery-follow";
         followButton.type = "button";
+        followButton.dataset.followArtistId = artist.id;
+        followButton.disabled = pendingFollowIds.has(artist.id);
 
         function updateFollowButton(isFollowing) {
             followButton.textContent = isFollowing ? "Following" : "Follow";
@@ -1051,15 +1164,13 @@ function renderArtistDirectory() {
             );
         }
 
-        updateFollowButton(FantrackState.isFollowing(artist.id));
+        updateFollowButton(FantrackFollow.isFollowing(artist.id));
         followButton.addEventListener("click", function () {
-            const isFollowing = FantrackState.setFollowing(
-                artist.id,
-                !FantrackState.isFollowing(artist.id)
-            );
-            updateFollowButton(isFollowing);
-            renderMyArtists();
-            refreshPersonalizedFeed();
+            performFollowMutation(artist, followButton, function (isFollowing) {
+                updateFollowButton(isFollowing);
+                renderMyArtists();
+                refreshPersonalizedFeed();
+            });
         });
         card.appendChild(followButton);
 
@@ -1089,6 +1200,13 @@ function getUpdateDetailUrl(artistId, update) {
 
 function refreshPersonalizedFeed() {
     latestUpdates.replaceChildren();
+    if (followStateStatus !== "ready") {
+        unreadCount = 0;
+        notificationBadge.textContent = "";
+        notificationBadge.style.display = "none";
+        appendFollowStateStatus(latestUpdates);
+        return;
+    }
     if (artistLoadStatus !== "ready" || updateLoadStatus !== "ready") {
         unreadCount = 0;
         notificationBadge.textContent = "";
@@ -1110,7 +1228,7 @@ function refreshPersonalizedFeed() {
         return;
     }
 
-    const followedForFeed = FantrackState.getFollowedArtists(artists);
+    const followedForFeed = getEffectiveFollowedArtists();
     unreadCount = FantrackState.getUnreadCount(artists, artistUpdates);
 
     if (followedForFeed.length === 0) {
@@ -1318,9 +1436,28 @@ async function loadUpdates() {
     refreshPersonalizedFeed();
 }
 
+async function initializeFollowState() {
+    showFollowStateStatus("Checking follow state...");
+    try {
+        await FantrackFollow.initialize();
+        followStateStatus = "ready";
+        showFollowStateStatus("");
+    } catch {
+        followStateStatus = "error";
+        showFollowStateStatus(
+            "Follow state is temporarily unavailable. Please refresh the page to try again.",
+            true
+        );
+    }
+    renderMyArtists();
+    renderArtistDirectory();
+    refreshPersonalizedFeed();
+}
+
 renderMyArtists();
 renderArtistDirectory();
 refreshPersonalizedFeed();
+initializeFollowState();
 loadArtists();
 loadUpdates();
 </script>
